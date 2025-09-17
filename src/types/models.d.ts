@@ -3,6 +3,21 @@ type GitHubUser = {
   avatarUrl: string;
 };
 
+type DBRepository = {
+  repository: string;
+};
+
+type DBFilter = {
+  id: string;
+  name: string;
+  filters: Array<{
+    type: string;
+    compare: string;
+    value?: string | number;
+    values?: Array<string | number>;
+  }>;
+};
+
 type GitHubPullRequest = {
   id: string;
   number: number;
@@ -22,7 +37,13 @@ type GitHubPullRequest = {
   totalCommentsCount: number;
   isDraft: boolean;
   author: GitHubUser;
+  requestedReviewers: GitHubUser[];
+  latestOpinionatedReviews: Array<{
+    author: GitHubUser;
+    state: 'CHANGES_REQUESTED' | 'APPROVED';
+  }>;
   createdAt: string;
+  calculatedReviewStatus: 'approved' | 'changes_requested' | 'pending';
   updatedAt: string;
   fetchedAt: Date;
 };

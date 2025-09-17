@@ -15,14 +15,14 @@ const useDatabaseStore = defineStore('db', () => {
     });
   }
 
-  function getAllEntries(storeName: string) {
-    return new Promise((resolve, reject) => {
+  function getAllEntries<T = object>(storeName: string) {
+    return new Promise<T[]>((resolve, reject) => {
       const req = db.value!.transaction([ storeName, ], 'readonly')
         .objectStore(storeName)
         .getAll();
 
       req.onsuccess = () => {
-        resolve(req.result);
+        resolve(req.result as T[]);
       };
       req.onerror = () => {
         reject(new Error('Error while interacting with local database.'));
@@ -57,22 +57,25 @@ const useDatabaseStore = defineStore('db', () => {
           });
           const isApproved = latestOpinionatedReviews.filter((review) => review.state === 'APPROVED').length >= 2;
           const hasChangesRequested = latestOpinionatedReviews.find((review) => review.state === 'CHANGES_REQUESTED');
-          const fallbackStatus = hasChangesRequested ? 'changes-requested' : 'pending';
+          const fallbackStatus = hasChangesRequested ? 'changes_requested' : 'pending';
           const [ org, repo, ] = ownerAndRepo.split('/');
+          const requestedReviewers = node.reviewRequests.nodes.map((request) => {
+            return request.requestedReviewer;
+          });
+
+          delete node.reviewRequests;
 
           return {
             ...node,
             org,
             repo,
+            requestedReviewers,
             statusCheckRollup: node.statusCheckRollup?.state || 'UNKNOWN',
             fetchedAt: new Date(),
             latestOpinionatedReviews: latestOpinionatedReviews,
             calculatedReviewStatus: isApproved ? 'approved' : fallbackStatus,
             labels: node.labels.nodes.map((label) => {
               return label;
-            }),
-            reviewRequests: node.reviewRequests.nodes.map((request) => {
-              return request;
             }),
           };
         });

@@ -1,5 +1,5 @@
 <template>
-  <div class="tw:flex tw:py-2">
+  <div class="tw:flex tw:p-2">
     <span class="tw:shrink-0">
       <q-icon v-if="item.isDraft" name="fas fa-code-pull-request" color="grey-6" />
       <!--      <q-icon v-else-if="item.merged" name="fas fa-code-merge" color="purple-4" />-->
@@ -28,9 +28,19 @@
           />
         </span>
       </div>
-      <div>
-        <small class="text-grey-6">#{{ item.number }} opened {{ item.createdAt }} by {{ item.author.login }} - {{ item.calculatedReviewStatus }}</small>
-      </div>
+      <small class="text-grey-6 tw:text-[12px]!">
+        <span class="q-pr-xs">#{{ item.number }} opened {{ item.createdAt }} by {{ item.author.login }}</span>
+
+        <span v-if="item.calculatedReviewStatus === 'approved'">
+          <q-icon name="fas fa-check-circle" color="green" /> Approved
+        </span>
+        <span v-else-if="item.calculatedReviewStatus === 'changes_requested'">
+          <q-icon name="fas fa-times-circle" color="red" /> Changes requested
+        </span>
+        <span v-else-if="item.calculatedReviewStatus === 'pending'">
+          <q-icon name="fas fa-minus-circle" color="orange" /> Review required
+        </span>
+      </small>
     </div>
 
     <div class="tw:shrink-0 tw:grid tw:grid-cols-2 tw:gap-2 tw:min-w-[120px]">
