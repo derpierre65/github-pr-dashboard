@@ -19,44 +19,48 @@
               @click="addFilter"
             />
           </div>
-          <q-list dense>
-            <q-item
-              v-for="filter in filters"
-              :key="filter.id"
-              class="tw:px-0!"
-              clickable
-              @click="applyFilter(filter.filters)"
-            >
-              <q-item-section class="q-pr-xs tw:flex-row! items-center" side>
-                <q-btn
-                  icon="fas fa-trash-alt"
-                  color="red"
-                  size="xs"
-                  dense
-                  flat
-                  @click.stop="removeFilter(filter)"
-                >
-                  <q-tooltip>Delete Filter</q-tooltip>
-                </q-btn>
-                <q-btn
-                  icon="fas fa-pencil"
-                  color="orange"
-                  size="xs"
-                  dense
-                  flat
-                  @click.stop="editFilter(filter)"
-                >
-                  <q-tooltip>Edit Filter</q-tooltip>
-                </q-btn>
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ filter.name }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-badge :label="filterValues[filter.id]" color="grey-9" rounded />
-              </q-item-section>
-            </q-item>
-          </q-list>
+
+          <div v-for="(group, groupName) in groupedFilters" :key="groupName" class="q-mb-sm">
+            <span>{{ groupName }}</span>
+            <q-list dense>
+              <q-item
+                v-for="filter in group"
+                :key="filter.id"
+                class="tw:px-0!"
+                clickable
+                @click="applyFilter(filter.filters)"
+              >
+                <q-item-section class="q-pr-xs tw:flex-row! items-center" side>
+                  <q-btn
+                    icon="fas fa-trash-alt"
+                    color="red"
+                    size="xs"
+                    dense
+                    flat
+                    @click.stop="removeFilter(filter)"
+                  >
+                    <q-tooltip>Delete Filter</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    icon="fas fa-pencil"
+                    color="orange"
+                    size="xs"
+                    dense
+                    flat
+                    @click.stop="editFilter(filter)"
+                  >
+                    <q-tooltip>Edit Filter</q-tooltip>
+                  </q-btn>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ filterWithoutGroup(filter.name, groupName) }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-badge :label="filterValues[filter.id]" color="grey-9" rounded />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
 
           <div class="tw:flex items-center q-mt-md q-mb-xs">
             <span class="text-grey-6">Repositories</span>
@@ -145,6 +149,14 @@ const availableRepositories = computed(() => {
   return Object.groupBy(pullRequests.value, (pullRequest) => `${pullRequest.org}/${pullRequest.repo}`);
 });
 
+const groupedFilters = computed(() => {
+  return Object.groupBy(filters.value, (filter) => {
+    const split = filter.name.split('/');
+
+    return split.length >= 2 ? split[0] : 'Other';
+  });
+});
+
 const filterValues = computed(() => {
   return Object.fromEntries(filters.value.map((filter) => {
     return [
@@ -153,6 +165,13 @@ const filterValues = computed(() => {
     ];
   }));
 });
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+function filterWithoutGroup(name: string, group: string) {
+  return name.replace(new RegExp(`^${escapeRegExp(group)}\\/`), '');
+}
 
 function filterBy(filters: DBFilter['filters'] = []) {
   if (filters.length === 0) {

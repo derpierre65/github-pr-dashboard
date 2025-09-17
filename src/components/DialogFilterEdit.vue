@@ -8,7 +8,12 @@
       </q-card-section>
 
       <q-card-section class="q-gutter-y-md">
-        <q-input v-model="filter.name" label="Filter Name" dense />
+        <q-input
+          v-model="filter.name"
+          label="Filter Name"
+          hint="You can create groups of filters if you use a slash in the name."
+          dense
+        />
 
         <div class="tw:flex tw:gap-2 tw:flex-col">
           <FilterOption
