@@ -22,8 +22,10 @@
   "devDependencies": {
     "@derpierre65/eslint-config": "github:derpierre65/eslint-config",
     "@quasar/app-vite": "^2.0.0-beta.12",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^20.5.9",
     "autoprefixer": "^10.4.2",
+    "tailwindcss": "^4.1.13",
     "typescript": "~5.5.3"
   },
   "engines": {
