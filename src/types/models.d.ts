@@ -3,10 +3,13 @@ type GitHubUser = {
   avatarUrl: string;
 };
 
-type PullRequest = {
-  id: number;
+type GitHubPullRequest = {
+  id: string;
   number: number;
   title: string;
+  url: string;
+  org: string;
+  repo: string;
   labels: Array<{
     id: number;
     name: string;
@@ -15,9 +18,11 @@ type PullRequest = {
   state: 'OPEN';
   // assignee: GitHubUser | null;
   // assignees: [];
+  statusCheckRollup: 'SUCCESS' | 'PENDING' | 'FAILURE' | 'UNKNOWN';
   totalCommentsCount: number;
-  draft: boolean;
-  body: string;
-  created_at: string;
+  isDraft: boolean;
   author: GitHubUser;
+  createdAt: string;
+  updatedAt: string;
+  fetchedAt: Date;
 };

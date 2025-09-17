@@ -1,96 +1,164 @@
 <template>
-  <q-page class="tw:container tw:mx-auto q-mt-md">
+  <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto q-mt-md">
     <div class="tw:flex">
       <q-space />
-      <q-btn color="primary" label="Reload" icon="fas fa-refresh" no-caps @click="reload" />
+      <q-btn color="primary" label="Reload" icon="fas fa-refresh" no-caps @click="reload()" />
     </div>
-    <div class="tw:flex tw:flex-col tw:divide-y-[1px] tw:divide-[#3d444db3] q-mt-md">
-      <PullRequest
-        v-for="pullRequest in filteredPullRequests"
-        :key="pullRequest.id"
-        :item="pullRequest"
-      />
+
+    <div class="tw:flex tw:gap-4">
+      <div class="tw:min-w-[300px]">
+        <div class="tw:flex items-center">
+          <span class="text-grey-6">Repositories</span>
+          <q-space />
+          <q-btn
+            color="primary"
+            icon="fas fa-plus"
+            size="xs"
+            dense
+            @click="addRepository"
+          />
+        </div>
+        <q-list dense>
+          <q-item
+            v-for="(repository, name) in availableRepositories"
+            :key="name"
+            class="tw:px-0!"
+            clickable
+            @click="applyRepositoryFilter(name)"
+          >
+            <q-item-section class="q-pr-xs" side>
+              <q-btn
+                icon="fas fa-trash-alt"
+                color="red"
+                size="xs"
+                dense
+                flat
+                @click.stop="removeRepository(name)"
+              />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ name }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-badge :label="repository.length" color="grey-9" rounded />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+
+      <div class="tw:flex tw:flex-col tw:divide-y-[1px] tw:divide-[#3d444db3] q-mt-md full-width">
+        <PullRequest
+          v-for="pullRequest in filteredPullRequests"
+          :key="pullRequest.id"
+          :item="pullRequest"
+        />
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import GitHub from 'src/lib/github';
 import { computed, ref } from 'vue';
-import PullRequest from 'src/components/PullRequest.vue';
-import useDatabaseStore from 'src/stores/database';
-import { Loading } from 'quasar';
+import PullRequest from 'components/PullRequest.vue';
+import useDatabaseStore from 'stores/database';
+import { Dialog, Loading } from 'quasar';
+import DialogRepositoryAdd from 'components/DialogRepositoryAdd.vue';
 
 defineOptions({
   name: 'IndexPage',
 });
 
-const pullRequests = ref([]);
+const dbStore = useDatabaseStore();
+
+const pullRequests = ref<GitHubPullRequest[]>([]);
+const currentFilters = ref([]);
 
 const filteredPullRequests = computed(() => {
   return pullRequests.value
-    .filter((pullRequest) => true)
+    .filter((pullRequest) => {
+      if (currentFilters.value.length === 0) {
+        return true;
+      }
+
+      for (const filter of currentFilters.value) {
+        if (!pullRequest[filter.type].includes(filter.value)) {
+          return false;
+        }
+      }
+
+      return true;
+    })
     .sort((pullRequestA, pullRequestB) => {
       return new Date(pullRequestB.createdAt).getTime() - new Date(pullRequestA.createdAt).getTime();
     });
 });
 
-function fetchPullRequestsByRepo(repo: string, cursor: string | null = null) {
-  const newPullRequests = [];
+const availableRepositories = computed(() => {
+  return Object.groupBy(pullRequests.value, (pullRequest) => `${pullRequest.org}/${pullRequest.repo}`);
+});
 
-  return GitHub.fetchPullRequests(repo, cursor)
-    .then(({ data, }) => {
-      const apiPullRequests = data.data.repository.pullRequests.nodes.map((node) => {
-        const latestOpinionatedReviews = node.latestOpinionatedReviews.nodes.map((review) => {
-          return review;
-        });
-        const isApproved = latestOpinionatedReviews.filter((review) => review.state === 'APPROVED').length >= 2;
-        const hasChangesRequested = latestOpinionatedReviews.find((review) => review.state === 'CHANGES_REQUESTED');
-        const fallbackStatus = hasChangesRequested ? 'changes-requested' : 'pending';
+function addRepository() {
+  Dialog.create({
+    component: DialogRepositoryAdd,
+  })
+    .onOk(() => reload(false));
+}
 
-        return {
-          ...node,
-          repository: repo,
-          statusCheckRollup: node.statusCheckRollup.state,
-          latestOpinionatedReviews: latestOpinionatedReviews,
-          calculatedReviewStatus: isApproved ? 'approved' : fallbackStatus,
-          labels: node.labels.nodes.map((label) => {
-            return label;
-          }),
-          reviewRequests: node.reviewRequests.nodes.map((request) => {
-            return request;
-          }),
-        };
-      });
-
-      for (const pullRequest of apiPullRequests) {
-        const pullRequestStore = useDatabaseStore().db!.transaction([ 'pull_requests', ], 'readwrite').objectStore('pull_requests');
-        const request = pullRequestStore.put(pullRequest);
-        request.onsuccess = () => console.log('updated');
-        request.onerror = () => console.log(':(');
-      }
-
-      newPullRequests.push(...apiPullRequests);
-
-      if (!data.data.repository.pullRequests.pageInfo.hasNextPage) {
-        return newPullRequests;
-      }
-
-      return fetchPullRequestsByRepo(repo, data.data.repository.pullRequests.pageInfo.endCursor);
+function removeRepository(repositoryName: string) {
+  Dialog
+    .create({
+      message: `Do you really want to remove the repository <strong>${repositoryName}</strong>?`,
+      html: true,
+      cancel: true,
     })
-    .catch((error) => {
-      console.error(error);
-
-      return [];
+    .onOk(() => {
+      Loading.show({
+        group: 'removeRepository',
+      });
+      Promise
+        .allSettled([
+          dbStore.deleteEntry('repositories', repositoryName),
+          ...pullRequests.value.filter((pullRequest) => {
+            return pullRequest.repository.toLowerCase() === repositoryName.toLowerCase();
+          }).map((pullRequest) => dbStore.deleteEntry('pull_requests', pullRequest.id)),
+        ])
+        .finally(() => {
+          reload(false);
+          Loading.hide('removeRepository');
+        });
     });
 }
 
-async function reload() {
-  Loading.show();
-  // reload all repositories
-  // await fetchPullRequestsByRepo('owner/repo');
+async function reload(refetch = true) {
+  Loading.show({
+    group: 'reloadPullRequests',
+  });
+  if (refetch) {
+    // await dbStore.fetchPullRequestsByRepo('repo/owner');
+  }
   pullRequests.value = await loadSavedPullRequests();
-  Loading.hide();
+  Loading.hide('reloadPullRequests');
+}
+
+function applyRepositoryFilter(repository: string) {
+  const [ org, repo, ] = repository.split('/');
+  applyFilter([
+    {
+      type: 'org',
+      value: [ org, ],
+    },
+    {
+      type: 'repo',
+      value: [ repo, ],
+    },
+  ]);
+}
+
+function applyFilter(filters: Array<{
+  type: 'org' | 'repo';
+  value: Array<string | number>;
+}>) {
+  currentFilters.value = filters;
 }
 
 function loadSavedPullRequests() {

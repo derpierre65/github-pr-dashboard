@@ -42,7 +42,7 @@ window.navigator.storage.persist().then((granted) => {
     return;
   }
 
-  const databaseRequest = indexedDB.open('github_pr_overview', 3);
+  const databaseRequest = indexedDB.open('github_pr_overview', 4);
 
   databaseRequest.onupgradeneeded = (event: Event) => {
     const db = event.target!.result as IDBDatabase;
@@ -50,6 +50,14 @@ window.navigator.storage.persist().then((granted) => {
     if (!db.objectStoreNames.contains('pull_requests')) {
       db.createObjectStore('pull_requests', {
         keyPath: 'id',
+      });
+    }
+    if (!db.objectStoreNames.contains('repositories')) {
+      const store = db.createObjectStore('repositories', {
+        keyPath: 'repository',
+      });
+      store.createIndex('repository', 'repository', {
+        unique: true,
       });
     }
     if (!db.objectStoreNames.contains('filters')) {

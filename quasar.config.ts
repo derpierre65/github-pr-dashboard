@@ -76,7 +76,11 @@ export default configure((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
+      config: {
+        notify: {
+          position: 'top',
+        },
+      },
 
       iconSet: 'fontawesome-v6',
       // lang: 'en-US', // Quasar language pack
@@ -90,6 +94,7 @@ export default configure((/* ctx */) => {
 
       // Quasar plugins
       plugins: [
+        'Dialog',
         'Loading',
         'Notify',
       ],

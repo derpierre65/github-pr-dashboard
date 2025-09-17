@@ -8,7 +8,7 @@
 
     <div class="tw:flex-auto tw:min-w-0 tw:px-2">
       <div class="tw:space-x-1">
-        <span class="tw:text-[rgb(145,152,161)]">{{ item.repository }}</span>
+        <span class="tw:text-[rgb(145,152,161)]">{{ item.org }}/{{ item.repo }}</span>
         <a v-bind="linkProps" class="tw:text-base text-weight-bold">
           {{ item.title }}
         </a>
@@ -58,7 +58,7 @@ import { computed } from 'vue';
 
 //#region Composable & Prepare
 const props = defineProps<{
-  item: PullRequest;
+  item: GitHubPullRequest;
 }>();
 //#endregion
 
