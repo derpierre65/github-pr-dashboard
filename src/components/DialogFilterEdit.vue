@@ -66,7 +66,7 @@ const {
 //#endregion
 
 //#region Data
-const filter = ref<DBFilter>(props.filter || {
+const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filter)) : {
   id: uid(),
   name: '',
   filters: [],

@@ -158,10 +158,10 @@ watchEffect(() => {
   }
   if (selectedFilterField.value.allowMultiple) {
     model.value.value = '';
-    model.value.values = model.value.value ? [ model.value.value, ] : [];
+    model.value.values = model.value.value ? [ model.value.value, ] : model.value.values;
   }
   else {
-    model.value.value = model.value.values[0];
+    model.value.value = model.value.values[0] ?? model.value.value;
     model.value.values = [];
   }
 

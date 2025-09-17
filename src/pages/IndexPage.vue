@@ -27,7 +27,7 @@
               clickable
               @click="applyFilter(filter.filters)"
             >
-              <q-item-section class="q-pr-xs" side>
+              <q-item-section class="q-pr-xs tw:flex-row! items-center" side>
                 <q-btn
                   icon="fas fa-trash-alt"
                   color="red"
@@ -35,7 +35,19 @@
                   dense
                   flat
                   @click.stop="removeFilter(filter)"
-                />
+                >
+                  <q-tooltip>Delete Filter</q-tooltip>
+                </q-btn>
+                <q-btn
+                  icon="fas fa-pencil"
+                  color="orange"
+                  size="xs"
+                  dense
+                  flat
+                  @click.stop="editFilter(filter)"
+                >
+                  <q-tooltip>Edit Filter</q-tooltip>
+                </q-btn>
               </q-item-section>
               <q-item-section>
                 <q-item-label>{{ filter.name }}</q-item-label>
@@ -73,7 +85,9 @@
                   dense
                   flat
                   @click.stop="removeRepository(name)"
-                />
+                >
+                  <q-tooltip>Remove Repository and Pull Requests</q-tooltip>
+                </q-btn>
               </q-item-section>
               <q-item-section>
                 <q-item-label>{{ name }}</q-item-label>
@@ -87,7 +101,7 @@
       </div>
 
       <div class="tw:flex-auto">
-        <q-banner v-if="filteredPullRequests.length === 0">
+        <q-banner v-if="filteredPullRequests.length === 0" class="bg-positive">
           No pull requests found.
         </q-banner>
         <div v-else class="tw:flex tw:flex-col tw:divide-y-[1px] tw:divide-[#3d444db3] tw:border-[#3d444db3] tw:border-2 q-mt-md">
@@ -218,17 +232,48 @@ function filterBy(filters: DBFilter['filters'] = []) {
   });
 }
 
-function addRepository() {
-  Dialog
-    .create({
-      component: DialogRepositoryAdd,
-    })
-    .onOk(() => reload(false));
-}
 function addFilter() {
   Dialog
     .create({
       component: DialogFilterEdit,
+    })
+    .onOk(() => reload(false));
+}
+
+function editFilter(filter: DBFilter) {
+  Dialog
+    .create({
+      component: DialogFilterEdit,
+      componentProps: {
+        filter,
+      },
+    })
+    .onOk(() => reload(false));
+}
+
+function removeFilter(filter: DBFilter) {
+  Dialog
+    .create({
+      message: `Do you really want to delete the filter <strong>${filter.name}</strong>?`,
+      html: true,
+      cancel: true,
+    })
+    .onOk(() => {
+      Loading.show({
+        group: 'removeFilter',
+      });
+
+      dbStore.deleteEntry('filters', filter.id).finally(() => {
+        reload(false);
+        Loading.hide('removeFilter');
+      });
+    });
+}
+
+function addRepository() {
+  Dialog
+    .create({
+      component: DialogRepositoryAdd,
     })
     .onOk(() => reload(false));
 }
@@ -255,24 +300,6 @@ function removeRepository(repositoryName: string) {
           reload(false);
           Loading.hide('removeRepository');
         });
-    });
-}
-function removeFilter(filter: DBFilter) {
-  Dialog
-    .create({
-      message: `Do you really want to delete the filter <strong>${filter.name}</strong>?`,
-      html: true,
-      cancel: true,
-    })
-    .onOk(() => {
-      Loading.show({
-        group: 'removeFilter',
-      });
-
-      dbStore.deleteEntry('filters', filter.id).finally(() => {
-        reload(false);
-        Loading.hide('removeFilter');
-      });
     });
 }
 
