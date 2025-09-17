@@ -15,9 +15,37 @@ const useDatabaseStore = defineStore('db', () => {
     });
   }
 
+  function getAllEntries(storeName: string) {
+    return new Promise((resolve, reject) => {
+      const req = db.value!.transaction([ storeName, ], 'readonly')
+        .objectStore(storeName)
+        .getAll();
+
+      req.onsuccess = () => {
+        resolve(req.result);
+      };
+      req.onerror = () => {
+        reject(new Error('Error while interacting with local database.'));
+      };
+    });
+  }
+
+  function saveEntry(storeName: string, entry: object) {
+    return new Promise((resolve, reject) => {
+      const req = db.value!.transaction([ storeName, ], 'readwrite').objectStore(storeName).put(entry);
+
+      req.onsuccess = () => {
+        resolve(req.result);
+      };
+      req.onerror = () => {
+        reject(new Error('Error while interacting with local database.'));
+      };
+    });
+  }
+
   function fetchPullRequestsByRepo(ownerAndRepo: string, cursor: string | null = null) {
     return GitHub.fetchPullRequests(ownerAndRepo, cursor)
-      .then(({ data, }) => {
+      .then(async({ data, }) => {
         if (data.errors?.length) {
           console.log(JSON.stringify(data.errors, null, 2));
           throw new Error(`GraphQL Request failed: ${data.errors[0].message}`);
@@ -49,11 +77,12 @@ const useDatabaseStore = defineStore('db', () => {
           };
         });
 
+        const saving = [];
         for (const pullRequest of apiPullRequests) {
-          const pullRequestStore = db.value!.transaction([ 'pull_requests', ], 'readwrite').objectStore('pull_requests');
-          const request = pullRequestStore.put(pullRequest);
-          request.onerror = () => console.log('Fail to update pull request');
+          saving.push(saveEntry('pull_requests', pullRequest));
         }
+
+        await Promise.allSettled(saving);
 
         if (!data.data.repository.pullRequests.pageInfo.hasNextPage) {
           return;
@@ -65,6 +94,8 @@ const useDatabaseStore = defineStore('db', () => {
 
   return {
     fetchPullRequestsByRepo,
+    getAllEntries,
+    saveEntry,
     deleteEntry,
     db,
   };

@@ -57,7 +57,7 @@ const loading = ref(false);
 //#region Methods
 function searchRepository() {
   return new Promise((resolve, reject) => {
-    const req = dbStore.db!.transaction([ 'repositories', ], 'readwrite')
+    const req = dbStore.db!.transaction([ 'repositories', ], 'readonly')
       .objectStore('repositories')
       .index('repository')
       .getAll(IDBKeyRange.only(repositoryName.value));
@@ -88,7 +88,7 @@ async function submit() {
     }
 
     await dbStore.fetchPullRequestsByRepo(repositoryName.value);
-    dbStore.db!.transaction([ 'repositories', ], 'readwrite').objectStore('repositories').add({
+    await dbStore.saveEntry('repositories', {
       repository: repositoryName.value,
     });
     onDialogOK();

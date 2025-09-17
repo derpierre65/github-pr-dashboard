@@ -61,7 +61,7 @@
 import { computed, ref } from 'vue';
 import PullRequest from 'components/PullRequest.vue';
 import useDatabaseStore from 'stores/database';
-import { Dialog, Loading } from 'quasar';
+import { Dialog, Loading, Notify } from 'quasar';
 import DialogRepositoryAdd from 'components/DialogRepositoryAdd.vue';
 
 defineOptions({
@@ -119,7 +119,7 @@ function removeRepository(repositoryName: string) {
         .allSettled([
           dbStore.deleteEntry('repositories', repositoryName),
           ...pullRequests.value.filter((pullRequest) => {
-            return pullRequest.repository.toLowerCase() === repositoryName.toLowerCase();
+            return `${pullRequest.org}/${pullRequest.repo}`.toLowerCase() === repositoryName.toLowerCase();
           }).map((pullRequest) => dbStore.deleteEntry('pull_requests', pullRequest.id)),
         ])
         .finally(() => {
@@ -133,10 +133,31 @@ async function reload(refetch = true) {
   Loading.show({
     group: 'reloadPullRequests',
   });
-  if (refetch) {
-    // await dbStore.fetchPullRequestsByRepo('repo/owner');
+
+  try {
+    if (refetch) {
+      const repositories = await dbStore.getAllEntries('repositories');
+      for (const repository of repositories) {
+        await dbStore.fetchPullRequestsByRepo(repository.repository);
+      }
+    }
+
+    pullRequests.value = await dbStore.getAllEntries('pull_requests');
+
+    if (refetch) {
+      Notify.create({
+        message: 'Pull requests have been reloaded.',
+        color: 'positive',
+      });
+    }
   }
-  pullRequests.value = await loadSavedPullRequests();
+  catch(error) {
+    Notify.create({
+      message: 'Something went wrong. Can\'t reload pull requests.',
+      color: 'negative',
+    });
+  }
+
   Loading.hide('reloadPullRequests');
 }
 
@@ -161,17 +182,7 @@ function applyFilter(filters: Array<{
   currentFilters.value = filters;
 }
 
-function loadSavedPullRequests() {
-  const pullRequestStore = useDatabaseStore().db!.transaction([ 'pull_requests', ], 'readwrite').objectStore('pull_requests');
-  const request = pullRequestStore.getAll();
-
-  return new Promise((resolve) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => resolve([]);
-  });
-}
-
-loadSavedPullRequests().then((data) => {
+dbStore.getAllEntries('pull_requests').then((data) => {
   pullRequests.value = data;
 });
 </script>
