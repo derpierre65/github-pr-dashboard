@@ -2,7 +2,17 @@
   <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto q-mt-md">
     <div class="tw:flex">
       <q-space />
-      <q-btn color="primary" label="Reload" icon="fas fa-refresh" no-caps @click="reload()" />
+
+      <div class="tw:space-x-4">
+        <q-toggle v-model="autoReload" label="Auto Reload every minute" />
+        <q-btn
+          color="primary"
+          label="Reload"
+          icon="fas fa-refresh"
+          no-caps
+          @click="reload()"
+        />
+      </div>
     </div>
 
     <div class="tw:flex tw:gap-4">
@@ -121,10 +131,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import PullRequest from 'components/PullRequest.vue';
 import useDatabaseStore from 'stores/database';
-import { Dialog, Loading, Notify } from 'quasar';
+import { Dialog, Loading, Notify, useInterval } from 'quasar';
 import DialogRepositoryAdd from 'components/DialogRepositoryAdd.vue';
 import DialogFilterEdit from 'components/DialogFilterEdit.vue';
 
@@ -138,6 +148,8 @@ const pullRequests = ref<GitHubPullRequest[]>([]);
 const filters = ref<DBFilter[]>([]);
 const currentFilters = ref([]);
 const localUsername = ref('derpierre65');
+const autoReload = ref(false);
+const autoReloadInterval = useInterval();
 
 const filteredPullRequests = computed(() => {
   return filterBy(currentFilters.value).sort((pullRequestA, pullRequestB) => {
@@ -402,5 +414,15 @@ watch(filterValues, (after, before) => {
 }, {
   deep: true,
 });
+
+watchEffect(() => {
+  if (autoReload.value) {
+    autoReloadInterval.registerInterval(() => reload(true), 60_000);
+  }
+  else {
+    autoReloadInterval.removeInterval();
+  }
+});
+
 reload(false);
 </script>
