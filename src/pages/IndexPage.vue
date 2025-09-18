@@ -15,7 +15,11 @@
       <q-space />
 
       <div class="tw:space-x-4">
-        <q-toggle v-model="autoReload" label="Auto Reload every minute" />
+        <q-toggle
+          v-model="autoReload"
+          :disable="reloading"
+          label="Auto Reload every minute"
+        />
         <q-btn
           :loading="reloading"
           color="primary"
@@ -372,6 +376,7 @@ async function reload(refetch = true) {
   }
 
   reloading.value = true;
+  createReloadInterval();
 
   try {
     if (refetch) {
@@ -444,6 +449,15 @@ function applyFilter(filter: DBFilter, event: Event | null = null) {
   }
 }
 
+function createReloadInterval() {
+  if (autoReload.value) {
+    autoReloadInterval.registerInterval(() => reload(true), 60_000);
+  }
+  else {
+    autoReloadInterval.removeInterval();
+  }
+}
+
 watch(filterValues, (after, before) => {
   for (const filterId of Object.keys(after)) {
     if (!before[filterId]) {
@@ -473,12 +487,7 @@ watch(filterValues, (after, before) => {
 });
 
 watchEffect(() => {
-  if (autoReload.value) {
-    autoReloadInterval.registerInterval(() => reload(true), 60_000);
-  }
-  else {
-    autoReloadInterval.removeInterval();
-  }
+  createReloadInterval();
 });
 
 reload(false);
