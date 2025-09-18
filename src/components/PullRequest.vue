@@ -30,7 +30,7 @@
         </span>
       </div>
       <small class="text-grey-6 tw:text-[12px]!">
-        <span class="q-pr-xs">#{{ item.number }} opened {{ item.createdAt }} by <strong
+        <span class="q-pr-xs">#{{ item.number }} opened {{ date }} by <strong
           class="cursor-pointer"
           @click="$emit('clickAuthor', item.author.login)"
         >{{ item.author.login }}</strong></span> •&nbsp;
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import dayjs from 'dayjs';
 
 //#region Composable & Prepare
 const props = defineProps<{
@@ -91,6 +92,9 @@ const linkProps = computed(() => {
     target: '_blank',
     rel: 'noopener noreferrer',
   };
+});
+const date = computed(() => {
+  return dayjs(props.item.createdAt).fromNow();
 });
 //#endregion
 

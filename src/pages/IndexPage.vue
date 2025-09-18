@@ -187,6 +187,10 @@ import useDatabaseStore from 'stores/database';
 import { Dialog, Loading, Notify, useInterval } from 'quasar';
 import DialogRepositoryAdd from 'components/DialogRepositoryAdd.vue';
 import DialogFilterEdit from 'components/DialogFilterEdit.vue';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 defineOptions({
   name: 'IndexPage',
@@ -436,6 +440,7 @@ async function reload(refetch = true) {
     }
   }
   catch(error) {
+    console.error(error);
     Notify.create({
       message: 'Something went wrong. Can\'t reload pull requests.',
       color: 'negative',
@@ -526,8 +531,8 @@ watch(filterValues, (after, before) => {
       tag: `filter-${filterId}`,
       body: text
         .replace(/%filter%/g, filter.name)
-        .replace(/%newValue%/g, after[filterId])
-        .replace(/%oldValue%/g, before[filterId]),
+        .replace(/%newValue%/g, after[filterId].toString())
+        .replace(/%oldValue%/g, before[filterId].toString()),
     });
   }
 }, {
