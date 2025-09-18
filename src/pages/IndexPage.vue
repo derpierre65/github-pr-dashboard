@@ -152,7 +152,12 @@
               @change="updateSettings"
               @keydown.enter="updateSettings"
             />
-            <small>Create a <a href="https://github.com/settings/tokens/new" class="text-primary" target="_blank" rel="noopener noreferrer">GitHub Token</a> with the <strong>repo</strong> scope.</small>
+            <small>Create a <a
+              href="https://github.com/settings/tokens/new"
+              class="text-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >GitHub Token</a> with the <strong>repo</strong> scope.</small>
           </div>
         </div>
       </div>
@@ -166,6 +171,8 @@
             v-for="pullRequest in filteredPullRequests"
             :key="pullRequest.id"
             :item="pullRequest"
+            @click-author="addTempFilter('author', $event)"
+            @click-label="addTempFilter('label', $event)"
           />
         </div>
       </div>
@@ -436,6 +443,20 @@ async function reload(refetch = true) {
   }
 
   reloading.value = false;
+}
+
+function addTempFilter(type: string, value: string) {
+  applyFilter({
+    id: `temp_filter_${type}_${value}`,
+    name: `${type} ${value}`,
+    filters: [
+      {
+        type: type,
+        compare: 'includes',
+        values: [ value, ],
+      },
+    ],
+  });
 }
 
 function applyRepositoryFilter(repository: string) {

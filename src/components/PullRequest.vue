@@ -21,15 +21,19 @@
           <q-badge
             v-for="label in item.labels"
             :key="label.id"
-            class="tw:ml-1 github-label"
+            class="tw:ml-1 github-label cursor-pointer"
             :style="hexToRgbHsl(label.color)"
             :label="label.name"
             rounded
+            @click="$emit('clickLabel', label.name)"
           />
         </span>
       </div>
       <small class="text-grey-6 tw:text-[12px]!">
-        <span class="q-pr-xs">#{{ item.number }} opened {{ item.createdAt }} by {{ item.author.login }}</span>
+        <span class="q-pr-xs">#{{ item.number }} opened {{ item.createdAt }} by <strong
+          class="cursor-pointer"
+          @click="$emit('clickAuthor', item.author.login)"
+        >{{ item.author.login }}</strong></span> •&nbsp;
 
         <span v-if="item.calculatedReviewStatus === 'approved'">
           <q-icon name="fas fa-check-circle" color="green" /> Approved
@@ -69,6 +73,11 @@ import { computed } from 'vue';
 //#region Composable & Prepare
 const props = defineProps<{
   item: GitHubPullRequest;
+}>();
+
+defineEmits<{
+  clickLabel: [value: string];
+  clickAuthor: [value: string];
 }>();
 //#endregion
 
