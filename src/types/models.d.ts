@@ -10,6 +10,8 @@ type DBRepository = {
 type DBFilter = {
   id: string;
   name: string;
+  showAsNotification: boolean;
+  notificationText: string;
   filters: Array<{
     type: string;
     compare: string;

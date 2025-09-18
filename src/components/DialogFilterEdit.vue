@@ -15,6 +15,28 @@
           dense
         />
 
+        <q-toggle
+          :model-value="filter.showAsNotification"
+          label="Show Notification if filter count increases"
+          dense
+          @update:model-value="requestNotificationPermission"
+        />
+
+        <q-input
+          v-if="filter.showAsNotification"
+          v-model="filter.notificationText"
+          label="Custom Notification Text"
+          dense
+        />
+        <div v-if="filter.showAsNotification">
+          You can use some variables in your notification text:
+          <ul class="tw:list-disc tw:pl-4">
+            <li>%filter% - Name of the filter.</li>
+            <li>%newValue% - New count of the filter.</li>
+            <li>%oldValue% - Old count of the filter.</li>
+          </ul>
+        </div>
+
         <div class="tw:flex tw:gap-2 tw:flex-col">
           <FilterOption
             v-for="(row, index) in filter.filters"
@@ -74,6 +96,8 @@ const {
 const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filter)) : {
   id: uid(),
   name: '',
+  showAsNotification: false,
+  notificationText: '',
   filters: [],
 });
 const loading = ref(false);
@@ -95,6 +119,18 @@ function addFilter() {
     compare: '',
     values: [],
   });
+}
+
+function requestNotificationPermission(modelValue: boolean) {
+  if (modelValue) {
+    return Notification.requestPermission((status) => {
+      if (status === 'granted') {
+        filter.value.showAsNotification = true;
+      }
+    });
+  }
+
+  filter.value.showAsNotification = false;
 }
 
 async function submit() {

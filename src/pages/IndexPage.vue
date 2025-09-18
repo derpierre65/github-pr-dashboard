@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import PullRequest from 'components/PullRequest.vue';
 import useDatabaseStore from 'stores/database';
 import { Dialog, Loading, Notify } from 'quasar';
@@ -375,5 +375,32 @@ function applyFilter(filters: DBFilter['filters'] = []) {
   currentFilters.value = filters;
 }
 
+watch(filterValues, (after, before) => {
+  for (const filterId of Object.keys(after)) {
+    if (!before[filterId]) {
+      continue;
+    }
+
+    if (before[filterId] >= after[filterId]) {
+      continue;
+    }
+
+    const filter = filters.value.find((filter) => filter.id === filterId);
+    if (!filter.showAsNotification) {
+      continue;
+    }
+
+    const text = filter.notificationText || 'Filter %filter% has a new value %newValue%.';
+    new Notification('Filter updated', {
+      tag: `filter-${filterId}`,
+      body: text
+        .replace(/%filter%/g, filter.name)
+        .replace(/%newValue%/g, after[filterId])
+        .replace(/%oldValue%/g, before[filterId]),
+    });
+  }
+}, {
+  deep: true,
+});
 reload(false);
 </script>
