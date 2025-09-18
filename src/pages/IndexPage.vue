@@ -170,12 +170,19 @@ const groupedFilters = computed(() => {
 });
 
 const filterValues = computed(() => {
-  return Object.fromEntries(filters.value.map((filter) => {
+  if (!filters.value.length) {
+    return {};
+  }
+
+  console.time('Recalculate Filter Values');
+  const filterValues = Object.fromEntries(filters.value.map((filter) => {
     return [
       filter.id,
       filterBy(filter.filters).length,
     ];
   }));
+  console.timeEnd('Recalculate Filter Values');
+  return filterValues;
 });
 
 function escapeRegExp(string: string) {
