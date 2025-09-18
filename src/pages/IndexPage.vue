@@ -334,6 +334,10 @@ function removeRepository(repositoryName: string) {
     });
 }
 
+async function loadPullRequests() {
+  pullRequests.value = await dbStore.getAllEntries<GitHubPullRequest>('pull_requests');
+}
+
 async function reload(refetch = true) {
   Loading.show({
     group: 'reloadPullRequests',
@@ -347,7 +351,7 @@ async function reload(refetch = true) {
       }
     }
 
-    pullRequests.value = await dbStore.getAllEntries<GitHubPullRequest>('pull_requests');
+    await loadPullRequests();
     filters.value = await dbStore.getAllEntries<DBFilter>('filters');
 
     if (refetch) {
@@ -355,6 +359,15 @@ async function reload(refetch = true) {
         message: 'Pull requests have been reloaded.',
         color: 'positive',
       });
+
+      const referenceDate = new Date(Date.now() - (120 * 1_000));
+      const oldPullRequests = pullRequests.value.filter((pullRequest) => pullRequest.fetchedAt < referenceDate);
+      if (oldPullRequests.length) {
+        for (const pullRequest of oldPullRequests) {
+          await dbStore.deleteEntry('pull_requests', pullRequest.id);
+        }
+        await loadPullRequests();
+      }
     }
   }
   catch(error) {
