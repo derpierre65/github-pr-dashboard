@@ -1,8 +1,34 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr lff">
     <q-page-container>
-      <router-view v-if="hasAccess" />
+      <router-view v-if="hasAccess" class="q-pb-lg" />
     </q-page-container>
+
+    <q-footer class="tw:h-12 q-pa-sm tw:bg-neutral-900!" bordered>
+      <div class="tw:container q-mx-auto flex full-height items-center">
+        <div>
+          This is an <a
+            href="https://github.com/derpierre65/github-pr-dashboard"
+            class="text-primary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Open Source</a> Project
+        </div>
+        <q-space />
+        <div>
+          <span>Proudly made by <a
+            href="https://www.derpierre65.dev/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary"
+          >derpierre65</a> with </span>
+          <q-icon name="fa fa-heart" color="red">
+            <q-tooltip>love</q-tooltip>
+          </q-icon>
+          <span> in Ireland</span>
+        </div>
+      </div>
+    </q-footer>
   </q-layout>
 </template>
 

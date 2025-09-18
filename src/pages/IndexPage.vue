@@ -1,5 +1,5 @@
 <template>
-  <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto q-mt-md">
+  <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto q-pt-md">
     <div class="tw:flex">
       <div class="tw:flex tw:gap-1 items-center">
         <q-badge
