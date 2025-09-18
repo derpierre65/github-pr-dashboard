@@ -19,6 +19,7 @@
           v-model="autoReload"
           :disable="reloading"
           label="Auto Reload every minute"
+          dense
         />
         <q-btn
           :loading="reloading"
@@ -31,7 +32,7 @@
       </div>
     </div>
 
-    <div class="tw:flex tw:gap-4">
+    <div class="tw:flex tw:gap-4 q-mt-md">
       <div class="tw:w-[400px] tw:shrink-0">
         <div class="tw:sticky tw:top-2">
           <div class="tw:flex items-center q-mb-xs">
@@ -130,6 +131,29 @@
               </q-item-section>
             </q-item>
           </q-list>
+
+          <div class="tw:flex items-center q-mt-md q-mb-xs">
+            <span class="text-grey-6">Settings</span>
+          </div>
+          <div class="q-gutter-y-md q-mt-xs">
+            <q-input
+              v-model="dbStore.settings.username"
+              label="GitHub Username"
+              hint="Will be used to resolve @me variables and highlight your own pull requests."
+              dense
+              @change="updateSettings"
+              @keydown.enter="updateSettings"
+            />
+            <q-input
+              v-model="dbStore.settings.token"
+              label="GitHub Token"
+              type="password"
+              dense
+              @change="updateSettings"
+              @keydown.enter="updateSettings"
+            />
+            <small>Create a <a href="https://github.com/settings/tokens/new" class="text-primary" target="_blank" rel="noopener noreferrer">GitHub Token</a> with the <strong>repo</strong> scope.</small>
+          </div>
         </div>
       </div>
 
@@ -162,13 +186,12 @@ defineOptions({
 });
 
 const dbStore = useDatabaseStore();
+const autoReloadInterval = useInterval();
 
 const pullRequests = ref<GitHubPullRequest[]>([]);
 const filters = ref<DBFilter[]>([]);
 const currentFilters = ref<DBFilter[]>([]);
-const localUsername = ref('derpierre65');
 const autoReload = ref(true);
-const autoReloadInterval = useInterval();
 const reloading = ref(false);
 
 const filteredPullRequests = computed(() => {
@@ -234,12 +257,12 @@ function filterBy(filters: DBFilter['filters'] = []) {
         else if (filter.type === 'author') {
           cachedCompareValue[filter.type] = [
             pullRequest.author.login,
-            pullRequest.author.login === localUsername.value ? '@me' : '',
+            pullRequest.author.login === dbStore.settings.username ? '@me' : '',
           ].filter(Boolean);
         }
         else if (filter.type === 'user_review') {
           const reviewers = pullRequest.requestedReviewers.map((reviewer) => reviewer.login);
-          if (reviewers.includes(localUsername.value)) {
+          if (reviewers.includes(dbStore.settings.username)) {
             reviewers.push('@me');
           }
 
@@ -247,7 +270,7 @@ function filterBy(filters: DBFilter['filters'] = []) {
         }
         else if (filter.type === 'user_reviewed') {
           cachedCompareValue[filter.type] = pullRequest.latestOpinionatedReviews.map((review) => review.author.login);
-          if (cachedCompareValue[filter.type].includes(localUsername.value)) {
+          if (cachedCompareValue[filter.type].includes(dbStore.settings.username)) {
             cachedCompareValue[filter.type].push('@me');
           }
         }
@@ -456,6 +479,10 @@ function createReloadInterval() {
   else {
     autoReloadInterval.removeInterval();
   }
+}
+
+function updateSettings() {
+  window.localStorage.setItem('pr_dashboard_settings', JSON.stringify(dbStore.settings));
 }
 
 watch(filterValues, (after, before) => {

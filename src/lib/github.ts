@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import useDatabaseStore from 'stores/database';
 
 const githubAxiosInstance = axios.create({
   baseURL: 'https://api.github.com',
@@ -9,7 +10,7 @@ const githubAxiosInstance = axios.create({
 });
 
 githubAxiosInstance.interceptors.request.use((config) => {
-  config.headers.Authorization ??= `Bearer ${import.meta.env.VITE_TEST}`;
+  config.headers.Authorization ??= `Bearer ${useDatabaseStore().settings.token}`;
 
   return config;
 }, (error) => Promise.reject(error));
@@ -26,6 +27,10 @@ class GitHubResponse<T> {
 
   get error() {
     return this.#error;
+  }
+
+  get message() {
+    return this.#error?.response?.data?.message || this.#error?.message || 'Unknown Error';
   }
 
   get data() {
@@ -133,6 +138,12 @@ export default class GitHub {
     return githubAxiosInstance
       .request(config)
       .then((response) => new GitHubResponse<T>(response))
-      .catch((error) => new GitHubResponse<T>(error.response || null, error));
+      .catch((error) => {
+        throw new GitHubResponse<T>(error.response || null, error);
+      });
   }
 }
+
+export {
+  GitHubResponse,
+};

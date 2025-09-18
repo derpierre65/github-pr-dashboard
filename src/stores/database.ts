@@ -4,6 +4,13 @@ import GitHub from 'src/lib/github';
 
 const useDatabaseStore = defineStore('db', () => {
   const db = ref<IDBDatabase | null>(null);
+  const settings = ref<{
+    username: string;
+    token: string;
+  }>(JSON.parse(window.localStorage.getItem('pr_dashboard_settings') || 'null') || {
+    username: '',
+    token: '',
+  });
 
   function deleteEntry(storeName: string, id: string | number) {
     const pullRequestStore = db.value!.transaction([ storeName, ], 'readwrite').objectStore(storeName);
@@ -96,11 +103,12 @@ const useDatabaseStore = defineStore('db', () => {
   }
 
   return {
+    db,
+    settings,
     fetchPullRequestsByRepo,
     getAllEntries,
     saveEntry,
     deleteEntry,
-    db,
   };
 });
 

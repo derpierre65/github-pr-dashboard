@@ -1,8 +1,8 @@
 {
-  "name": "github-pr-overview",
-  "version": "0.0.1",
-  "description": "A Quasar Project",
-  "productName": "GitHub Pull Request Overview",
+  "name": "github-pr-dashboard",
+  "version": "0.1.0",
+  "description": "A pull request dashboard for GitHub.com.",
+  "productName": "GitHub Pull Request Dashboard",
   "author": "derpierre65",
   "type": "module",
   "private": true,
