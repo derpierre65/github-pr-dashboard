@@ -105,11 +105,11 @@
           </div>
           <q-list dense>
             <q-item
-              v-for="(repository, name) in availableRepositories"
-              :key="name"
+              v-for="repository in repositories"
+              :key="repository.repository"
               class="tw:px-0!"
               clickable
-              @click="applyRepositoryFilter(name)"
+              @click="applyRepositoryFilter(repository.repository)"
             >
               <q-item-section class="q-pr-xs" side>
                 <q-btn
@@ -118,16 +118,16 @@
                   size="xs"
                   dense
                   flat
-                  @click.stop="removeRepository(name)"
+                  @click.stop="removeRepository(repository.repository)"
                 >
                   <q-tooltip>Remove Repository and Pull Requests</q-tooltip>
                 </q-btn>
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ name }}</q-item-label>
+                <q-item-label>{{ repository.repository }}</q-item-label>
               </q-item-section>
               <q-item-section side>
-                <q-badge :label="repository.length" color="grey-9" rounded />
+                <q-badge :label="availableRepositories[repository.repository]?.length || 0" color="grey-9" rounded />
               </q-item-section>
             </q-item>
           </q-list>
@@ -202,6 +202,7 @@ const autoReloadInterval = useInterval();
 const pullRequests = ref<GitHubPullRequest[]>([]);
 const filters = ref<DBFilter[]>([]);
 const currentFilters = ref<DBFilter[]>([]);
+const repositories = ref<DBRepository[]>([]);
 const autoReload = ref(true);
 const reloading = ref(false);
 
@@ -413,9 +414,9 @@ async function reload(refetch = true) {
   createReloadInterval();
 
   try {
+    repositories.value = await dbStore.getAllEntries<DBRepository>('repositories');
     if (refetch) {
-      const repositories = await dbStore.getAllEntries<DBRepository>('repositories');
-      for (const repository of repositories) {
+      for (const repository of repositories.value) {
         await dbStore.fetchPullRequestsByRepo(repository.repository);
       }
     }
