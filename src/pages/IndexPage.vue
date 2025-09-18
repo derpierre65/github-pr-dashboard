@@ -17,6 +17,7 @@
       <div class="tw:space-x-4">
         <q-toggle v-model="autoReload" label="Auto Reload every minute" />
         <q-btn
+          :loading="reloading"
           color="primary"
           label="Reload"
           icon="fas fa-refresh"
@@ -164,6 +165,7 @@ const currentFilters = ref<DBFilter[]>([]);
 const localUsername = ref('derpierre65');
 const autoReload = ref(true);
 const autoReloadInterval = useInterval();
+const reloading = ref(false);
 
 const filteredPullRequests = computed(() => {
   const filteredPullRequests = currentFilters.value.length ? [] : pullRequests.value;
@@ -365,9 +367,11 @@ async function loadPullRequests() {
 }
 
 async function reload(refetch = true) {
-  Loading.show({
-    group: 'reloadPullRequests',
-  });
+  if (reloading.value) {
+    return;
+  }
+
+  reloading.value = true;
 
   try {
     if (refetch) {
@@ -403,7 +407,7 @@ async function reload(refetch = true) {
     });
   }
 
-  Loading.hide('reloadPullRequests');
+  reloading.value = false;
 }
 
 function applyRepositoryFilter(repository: string) {
