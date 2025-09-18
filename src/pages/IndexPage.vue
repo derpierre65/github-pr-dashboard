@@ -148,7 +148,7 @@ const pullRequests = ref<GitHubPullRequest[]>([]);
 const filters = ref<DBFilter[]>([]);
 const currentFilters = ref([]);
 const localUsername = ref('derpierre65');
-const autoReload = ref(false);
+const autoReload = ref(true);
 const autoReloadInterval = useInterval();
 
 const filteredPullRequests = computed(() => {
