@@ -1,6 +1,17 @@
 <template>
   <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto q-mt-md">
     <div class="tw:flex">
+      <div class="tw:flex tw:gap-1 items-center">
+        <q-badge
+          v-for="(currentFilter, index) in currentFilters"
+          :key="currentFilter.id"
+        >
+          <span>{{ currentFilter.name }}</span>
+
+          <q-icon name="fas fa-times cursor-pointer" @click="currentFilters.splice(index, 1)" />
+        </q-badge>
+      </div>
+
       <q-space />
 
       <div class="tw:space-x-4">
@@ -38,7 +49,7 @@
                 :key="filter.id"
                 class="tw:px-0!"
                 clickable
-                @click="applyFilter(filter.filters)"
+                @click="applyFilter(filter, $event)"
               >
                 <q-item-section class="q-pr-xs tw:flex-row! items-center" side>
                   <q-btn
@@ -146,13 +157,18 @@ const dbStore = useDatabaseStore();
 
 const pullRequests = ref<GitHubPullRequest[]>([]);
 const filters = ref<DBFilter[]>([]);
-const currentFilters = ref([]);
+const currentFilters = ref<DBFilter[]>([]);
 const localUsername = ref('derpierre65');
 const autoReload = ref(true);
 const autoReloadInterval = useInterval();
 
 const filteredPullRequests = computed(() => {
-  return filterBy(currentFilters.value).sort((pullRequestA, pullRequestB) => {
+  const filteredPullRequests = currentFilters.value.length ? [] : pullRequests.value;
+  for (const currentFilter of currentFilters.value) {
+    filteredPullRequests.push(...filterBy(currentFilter.filters));
+  }
+
+  return filteredPullRequests.sort((pullRequestA, pullRequestB) => {
     return new Date(pullRequestB.createdAt).getTime() - new Date(pullRequestA.createdAt).getTime();
   });
 });
@@ -389,22 +405,36 @@ async function reload(refetch = true) {
 
 function applyRepositoryFilter(repository: string) {
   const [ org, repo, ] = repository.split('/');
-  applyFilter([
-    {
-      type: 'org',
-      compare: 'includes',
-      values: [ org, ],
-    },
-    {
-      type: 'repo',
-      compare: 'includes',
-      values: [ repo, ],
-    },
-  ]);
+  applyFilter({
+    id: `custom_repository_${repository}`,
+    name: `Repository ${repository}`,
+    filters: [
+      {
+        type: 'org',
+        compare: 'includes',
+        values: [ org, ],
+      },
+      {
+        type: 'repo',
+        compare: 'includes',
+        values: [ repo, ],
+      },
+    ],
+  });
 }
 
-function applyFilter(filters: DBFilter['filters'] = []) {
-  currentFilters.value = filters;
+function applyFilter(filter: DBFilter, event: Event | null = null) {
+  if (!event || !(event instanceof MouseEvent) || !event.ctrlKey) {
+    currentFilters.value = [];
+  }
+
+  const isActiveFilter = currentFilters.value.findIndex((currentFilter) => currentFilter.id === filter.id);
+  if (isActiveFilter >= 0) {
+    currentFilters.value.splice(isActiveFilter, 1);
+  }
+  else {
+    currentFilters.value.push(filter);
+  }
 }
 
 watch(filterValues, (after, before) => {
