@@ -1,13 +1,5 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
-        <q-toolbar-title>
-          GitHub Pull Request Overview
-        </q-toolbar-title>
-      </q-toolbar>
-    </q-header>
-
     <q-page-container>
       <router-view v-if="hasAccess" />
     </q-page-container>
