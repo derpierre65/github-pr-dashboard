@@ -28,7 +28,7 @@
 
     <div class="tw:flex tw:gap-4">
       <div class="tw:w-[400px] tw:shrink-0">
-        <div class="tw:sticky tw:top-16">
+        <div class="tw:sticky tw:top-2">
           <div class="tw:flex items-center q-mb-xs">
             <span class="text-grey-6">Filters</span>
             <q-space />
@@ -76,7 +76,10 @@
                 <q-item-section>
                   <q-item-label>{{ filterWithoutGroup(filter.name, groupName) }}</q-item-label>
                 </q-item-section>
-                <q-item-section side>
+                <q-item-section class="tw:flex-row!" side>
+                  <q-icon v-if="filter.showAsNotification" name="fas fa-bell" size="xs" color="green-9">
+                    <q-tooltip>Notifications enabled</q-tooltip>
+                  </q-icon>
                   <q-badge :label="filterValues[filter.id]" color="grey-9" rounded />
                 </q-item-section>
               </q-item>
