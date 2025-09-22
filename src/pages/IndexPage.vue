@@ -252,6 +252,12 @@ function filterWithoutGroup(name: string, group: string) {
   return name.replace(new RegExp(`^${escapeRegExp(group)}\\/`), '');
 }
 
+function includes(array: Array<string | number>, value: string | number) {
+  return array.some((arrayValue) => {
+    return arrayValue === value || arrayValue.toString().toLowerCase() === value.toString().toLowerCase();
+  });
+}
+
 function filterBy(filters: DBFilter['filters'] = []) {
   if (filters.length === 0) {
     return pullRequests.value;
@@ -274,7 +280,7 @@ function filterBy(filters: DBFilter['filters'] = []) {
         }
         else if (filter.type === 'user_review') {
           const reviewers = pullRequest.requestedReviewers.map((reviewer) => reviewer.login);
-          if (reviewers.includes(dbStore.settings.username)) {
+          if (includes(reviewers, dbStore.settings.username)) {
             reviewers.push('@me');
           }
 
@@ -294,14 +300,14 @@ function filterBy(filters: DBFilter['filters'] = []) {
         let found = false;
         if (Array.isArray(compareValue)) {
           for (const value of compareValue) {
-            if (filter.values.includes(value)) {
+            if (includes(filter.values, value)) {
               found = true;
               break;
             }
           }
         }
         else {
-          found = filter.values.includes(compareValue);
+          found = includes(filter.values, compareValue);
         }
 
         if (!found) {
@@ -311,7 +317,7 @@ function filterBy(filters: DBFilter['filters'] = []) {
 
       if (filter.compare === 'excludes') {
         if (!Array.isArray(compareValue)) {
-          if (!filter.values.includes(compareValue)) {
+          if (!includes(filter.values, compareValue)) {
             return false;
           }
 
@@ -319,7 +325,7 @@ function filterBy(filters: DBFilter['filters'] = []) {
         }
 
         for (const value of filter.values) {
-          if (compareValue.includes(value)) {
+          if (includes(compareValue, value)) {
             return false;
           }
         }
