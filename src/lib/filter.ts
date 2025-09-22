@@ -74,7 +74,7 @@ function filterBy(pullRequests: GitHubPullRequest[], filters: DBFilter['filters'
 
       if (filter.compare === 'excludes') {
         if (!Array.isArray(compareValue)) {
-          if (!includes(filter.values, compareValue)) {
+          if (includes(filter.values, compareValue)) {
             return false;
           }
 

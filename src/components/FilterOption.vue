@@ -31,13 +31,16 @@
     <q-select
       v-if="selectedFilterField && selectedFilterField.allowValueInput !== false"
       v-model="model.values"
+      :options="selectedFilterField.valueOptions || []"
       class="tw:col-span-2"
       new-value-mode="add-unique"
       input-debounce="0"
       :max-values="selectedFilterField.allowMultiple ? undefined : 1"
-      use-input
+      :use-input="!selectedFilterField.valueOptions"
       use-chips
       multiple
+      emit-value
+      map-options
       dense
     />
   </div>
@@ -111,6 +114,29 @@ const availableFilterFields = ref(Object.freeze([
       'excludes',
     ],
     allowMultiple: true,
+  },
+  {
+    label: 'Review Status',
+    value: 'calculatedReviewStatus',
+    allowedCompare: [
+      'includes',
+      'excludes',
+    ],
+    allowMultiple: true,
+    valueOptions: [
+      {
+        label: 'Approved',
+        value: 'approved',
+      },
+      {
+        label: 'Changes Requested',
+        value: 'changes_requested',
+      },
+      {
+        label: 'Review required',
+        value: 'pending',
+      },
+    ],
   },
   // {
   //   label: 'Status',
