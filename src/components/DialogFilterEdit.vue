@@ -1,5 +1,5 @@
 <template>
-  <q-dialog ref="dialogRef">
+  <q-dialog ref="dialogRef" persistent no-shake>
     <q-card class="no-shadow tw:max-w-[800px]! full-width">
       <q-card-section class="tw:flex tw:bg-stone-800 q-py-sm items-center">
         <span>Filter</span>
