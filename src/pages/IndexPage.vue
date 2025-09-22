@@ -44,7 +44,9 @@
               size="xs"
               dense
               @click="addFilter"
-            />
+            >
+              <q-tooltip>Create filter</q-tooltip>
+            </q-btn>
           </div>
 
           <div v-for="(group, groupName) in groupedFilters" :key="groupName" class="q-mb-sm">
@@ -101,7 +103,9 @@
               size="xs"
               dense
               @click="addRepository"
-            />
+            >
+              <q-tooltip>Add repository</q-tooltip>
+            </q-btn>
           </div>
           <q-list dense>
             <q-item
