@@ -4,6 +4,7 @@ import GitHub from 'src/lib/github';
 
 const useDatabaseStore = defineStore('db', () => {
   const db = ref<IDBDatabase | null>(null);
+  const pullRequests = ref<GitHubPullRequest[]>([]);
   const settings = ref<{
     username: string;
     token: string;
@@ -105,6 +106,7 @@ const useDatabaseStore = defineStore('db', () => {
   return {
     db,
     settings,
+    pullRequests,
     fetchPullRequestsByRepo,
     getAllEntries,
     saveEntry,

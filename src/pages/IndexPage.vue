@@ -185,6 +185,7 @@ import DialogFilterEdit from 'components/DialogFilterEdit.vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import GitHub, { GitHubResponse } from 'src/lib/github';
+import { filterBy } from 'src/lib/filter';
 
 dayjs.extend(relativeTime);
 
@@ -195,7 +196,6 @@ defineOptions({
 const dbStore = useDatabaseStore();
 const autoReloadInterval = useInterval();
 
-const pullRequests = ref<GitHubPullRequest[]>([]);
 const filters = ref<DBFilter[]>([]);
 const currentFilters = ref<DBFilter[]>([]);
 const repositories = ref<DBRepository[]>([]);
@@ -203,9 +203,9 @@ const autoReload = ref(true);
 const reloading = ref(false);
 
 const filteredPullRequests = computed(() => {
-  const filteredPullRequests = currentFilters.value.length ? [] : pullRequests.value;
+  const filteredPullRequests = currentFilters.value.length ? [] : dbStore.pullRequests;
   for (const currentFilter of currentFilters.value) {
-    filteredPullRequests.push(...filterBy(currentFilter.filters));
+    filteredPullRequests.push(...filterBy(dbStore.pullRequests, currentFilter.filters));
   }
 
   return filteredPullRequests.sort((pullRequestA, pullRequestB) => {
@@ -214,7 +214,7 @@ const filteredPullRequests = computed(() => {
 });
 
 const availableRepositories = computed(() => {
-  return Object.groupBy(pullRequests.value, (pullRequest) => `${pullRequest.org}/${pullRequest.repo}`);
+  return Object.groupBy(dbStore.pullRequests, (pullRequest) => `${pullRequest.org}/${pullRequest.repo}`);
 });
 
 const groupedFilters = computed(() => {
@@ -234,7 +234,7 @@ const filterValues = computed(() => {
   const filterValues = Object.fromEntries(filters.value.map((filter) => {
     return [
       filter.id,
-      filterBy(filter.filters).length,
+      filterBy(dbStore.pullRequests, filter.filters).length,
     ];
   }));
   console.timeEnd('Recalculate Filter Values');
@@ -246,97 +246,6 @@ function escapeRegExp(string: string) {
 }
 function filterWithoutGroup(name: string, group: string) {
   return name.replace(new RegExp(`^${escapeRegExp(group)}\\/`), '');
-}
-
-function includes(array: Array<string | number>, value: string | number) {
-  return array.some((arrayValue) => {
-    return arrayValue === value || arrayValue.toString().toLowerCase() === value.toString().toLowerCase();
-  });
-}
-
-function filterBy(filters: DBFilter['filters'] = []) {
-  if (filters.length === 0) {
-    return pullRequests.value;
-  }
-
-  return pullRequests.value.filter((pullRequest) => {
-    const cachedCompareValue = {};
-
-    for (const filter of filters) {
-      if (typeof cachedCompareValue[filter.type] === 'undefined') {
-        cachedCompareValue[filter.type] = pullRequest[filter.type];
-        if (filter.type === 'label') {
-          cachedCompareValue[filter.type] = pullRequest.labels.map((label) => label.name);
-        }
-        else if (filter.type === 'author') {
-          cachedCompareValue[filter.type] = [
-            pullRequest.author.login,
-            pullRequest.author.login === dbStore.settings.username ? '@me' : '',
-          ].filter(Boolean);
-        }
-        else if (filter.type === 'user_review') {
-          const reviewers = pullRequest.requestedReviewers.map((reviewer) => reviewer.login);
-          if (includes(reviewers, dbStore.settings.username)) {
-            reviewers.push('@me');
-          }
-
-          cachedCompareValue[filter.type] = reviewers;
-        }
-        else if (filter.type === 'user_reviewed') {
-          cachedCompareValue[filter.type] = pullRequest.latestOpinionatedReviews.map((review) => review.author.login);
-          if (cachedCompareValue[filter.type].includes(dbStore.settings.username)) {
-            cachedCompareValue[filter.type].push('@me');
-          }
-        }
-      }
-
-      const compareValue = cachedCompareValue[filter.type];
-
-      if (filter.compare === 'true' && compareValue !== true) {
-        return false;
-      }
-      if (filter.compare === 'false' && compareValue !== false) {
-        return false;
-      }
-
-      if (filter.compare === 'includes') {
-        let found = false;
-        if (Array.isArray(compareValue)) {
-          for (const value of compareValue) {
-            if (includes(filter.values, value)) {
-              found = true;
-              break;
-            }
-          }
-        }
-        else {
-          found = includes(filter.values, compareValue);
-        }
-
-        if (!found) {
-          return false;
-        }
-      }
-
-      if (filter.compare === 'excludes') {
-        if (!Array.isArray(compareValue)) {
-          if (!includes(filter.values, compareValue)) {
-            return false;
-          }
-
-          continue;
-        }
-
-        for (const value of filter.values) {
-          if (includes(compareValue, value)) {
-            return false;
-          }
-        }
-      }
-    }
-
-    return true;
-  });
 }
 
 function addFilter() {
@@ -408,7 +317,7 @@ function removeRepository(repositoryName: string) {
       Promise
         .allSettled([
           dbStore.deleteEntry('repositories', repositoryName),
-          ...pullRequests.value.filter((pullRequest) => {
+          ...dbStore.pullRequests.filter((pullRequest) => {
             return `${pullRequest.org}/${pullRequest.repo}`.toLowerCase() === repositoryName.toLowerCase();
           }).map((pullRequest) => dbStore.deleteEntry('pull_requests', pullRequest.id)),
         ])
@@ -420,7 +329,7 @@ function removeRepository(repositoryName: string) {
 }
 
 async function loadPullRequests() {
-  pullRequests.value = await dbStore.getAllEntries<GitHubPullRequest>('pull_requests');
+  dbStore.pullRequests = await dbStore.getAllEntries<GitHubPullRequest>('pull_requests');
 }
 
 async function reload(refetch = true) {
@@ -449,7 +358,7 @@ async function reload(refetch = true) {
       });
 
       const referenceDate = new Date(Date.now() - (120 * 1_000));
-      const oldPullRequests = pullRequests.value.filter((pullRequest) => pullRequest.fetchedAt < referenceDate);
+      const oldPullRequests = dbStore.pullRequests.filter((pullRequest) => pullRequest.fetchedAt < referenceDate);
       if (oldPullRequests.length) {
         for (const pullRequest of oldPullRequests) {
           await dbStore.deleteEntry('pull_requests', pullRequest.id);
