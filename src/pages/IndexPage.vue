@@ -355,7 +355,16 @@ function editFilter(filter: DBFilter) {
         filter,
       },
     })
-    .onOk(() => reload(false));
+    .onOk(async() => {
+      await reload(false);
+
+      const activeFilter = currentFilters.value.findIndex((currentFilter) => currentFilter.id === filter.id);
+      if (activeFilter === -1) {
+        return;
+      }
+
+      currentFilters.value[activeFilter] = filters.value.find((availableFilter) => availableFilter.id === filter.id)!;
+    });
 }
 
 function removeFilter(filter: DBFilter) {
