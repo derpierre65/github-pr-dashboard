@@ -292,6 +292,13 @@ function filterBy(filters: DBFilter['filters'] = []) {
 
       const compareValue = cachedCompareValue[filter.type];
 
+      if (filter.compare === 'true' && compareValue !== true) {
+        return false;
+      }
+      if (filter.compare === 'false' && compareValue !== false) {
+        return false;
+      }
+
       if (filter.compare === 'includes') {
         let found = false;
         if (Array.isArray(compareValue)) {
