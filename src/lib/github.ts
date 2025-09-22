@@ -15,7 +15,7 @@ githubAxiosInstance.interceptors.request.use((config) => {
   return config;
 }, (error) => Promise.reject(error));
 
-class GitHubResponse<T> {
+class GitHubResponse<T = object> {
   readonly #response: AxiosResponse<T> | null = null;
 
   readonly #error = null;
@@ -54,6 +54,13 @@ export default class GitHub {
         ...variables,
       },
     });
+  }
+
+  static fetchUser() {
+    return this.#request<{
+      id: number;
+      login: string;
+    }>('get', '/user');
   }
 
   static fetchPullRequests(ownerAndRepo: string, cursor = null) {
@@ -131,7 +138,7 @@ export default class GitHub {
     });
   }
 
-  static async #request<T>(type: 'get' | 'post', url: string, config: AxiosRequestConfig) {
+  static async #request<T>(type: 'get' | 'post', url: string, config: AxiosRequestConfig = {}) {
     config.url ??= url;
     config.method ??= type;
 

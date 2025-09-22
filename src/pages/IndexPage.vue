@@ -137,20 +137,11 @@
           </div>
           <div class="q-gutter-y-md q-mt-xs">
             <q-input
-              v-model="dbStore.settings.username"
-              label="GitHub Username"
-              hint="Will be used to resolve @me variables and highlight your own pull requests."
-              dense
-              @change="updateSettings"
-              @keydown.enter="updateSettings"
-            />
-            <q-input
               v-model="dbStore.settings.token"
               label="GitHub Token"
               type="password"
               dense
-              @change="updateSettings"
-              @keydown.enter="updateSettings"
+              @change="updateSettings('token')"
             />
             <small>Create a <a
               href="https://github.com/settings/tokens/new"
@@ -189,6 +180,7 @@ import DialogRepositoryAdd from 'components/DialogRepositoryAdd.vue';
 import DialogFilterEdit from 'components/DialogFilterEdit.vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import GitHub, { GitHubResponse } from 'src/lib/github';
 
 dayjs.extend(relativeTime);
 
@@ -514,7 +506,27 @@ function createReloadInterval() {
   }
 }
 
-function updateSettings() {
+async function updateSettings(field: string) {
+  if (field === 'token') {
+    Loading.show({
+      group: 'validateToken',
+    });
+
+    const response: GitHubResponse = await GitHub.fetchUser().catch((error) => error);
+    Loading.hide('validateToken');
+
+    if (response.error) {
+      Notify.create({
+        message: 'Your token is invalid.',
+        color: 'negative',
+      });
+      return;
+    }
+  }
+
+  const { data, } = await GitHub.fetchUser();
+  dbStore.settings.username = data.login;
+
   window.localStorage.setItem('pr_dashboard_settings', JSON.stringify(dbStore.settings));
 }
 
