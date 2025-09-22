@@ -12,7 +12,7 @@
           v-model="repositoryName"
           :loading="loading"
           label="Repository Name"
-          placeholder="derpierre65/github-pr-overview"
+          placeholder="derpierre65/github-pr-dashboard"
           hint="You need to add the owner and repository name, separated by a slash."
           stack-label
           @keyup.enter="submit"
