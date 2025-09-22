@@ -161,15 +161,12 @@
         <q-banner v-if="filteredPullRequests.length === 0" class="bg-positive">
           No pull requests found.
         </q-banner>
-        <div v-else class="tw:flex tw:flex-col tw:divide-y-[1px] tw:divide-[#3d444db3] tw:border-[#3d444db3] tw:border-2 q-mt-md">
-          <PullRequest
-            v-for="pullRequest in filteredPullRequests"
-            :key="pullRequest.id"
-            :item="pullRequest"
-            @click-author="addTempFilter('author', $event)"
-            @click-label="addTempFilter('label', $event)"
-          />
-        </div>
+        <PullRequestTable
+          v-else
+          :items="filteredPullRequests"
+          @click-author="addTempFilter('author', $event)"
+          @click-label="addTempFilter('label', $event)"
+        />
       </div>
     </div>
   </q-page>
@@ -177,7 +174,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue';
-import PullRequest from 'components/PullRequest.vue';
 import useDatabaseStore from 'stores/database';
 import { Dialog, Loading, Notify, useInterval } from 'quasar';
 import DialogRepositoryAdd from 'components/DialogRepositoryAdd.vue';
@@ -186,6 +182,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import GitHub, { GitHubResponse } from 'src/lib/github';
 import { filterBy } from 'src/lib/filter';
+import PullRequestTable from 'components/PullRequestTable.vue';
 
 dayjs.extend(relativeTime);
 

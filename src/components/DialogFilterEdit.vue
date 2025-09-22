@@ -56,6 +56,27 @@
             @click="addFilter"
           />
         </div>
+
+        <div class="flex tw:gap-2">
+          <q-banner class="bg-blue-10 tw:flex-auto" dense>
+            Found <strong>{{ foundPullRequests.length }}</strong> pull requests for this filter.
+          </q-banner>
+          <q-btn
+            :label="showPullRequests ? 'Hide Pull Requests' : 'Show Pull Requests'"
+            :color="showPullRequests ? 'grey-8' : 'green'"
+            no-caps
+            @click="showPullRequests = !showPullRequests"
+          />
+        </div>
+        <template v-if="foundPullRequests.length">
+          <q-slide-transition>
+            <PullRequestTable
+              v-show="showPullRequests"
+              :items="foundPullRequests"
+              class="tw:max-h-[300px] overflow-auto"
+            />
+          </q-slide-transition>
+        </template>
       </q-card-section>
 
       <q-card-actions align="right" class="tw:bg-stone-800">
@@ -73,9 +94,11 @@
 
 <script setup lang="ts">
 import { Notify, uid, useDialogPluginComponent } from 'quasar';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import useDatabaseStore from 'stores/database';
 import FilterOption from 'components/FilterOption.vue';
+import PullRequestTable from 'components/PullRequestTable.vue';
+import { filterBy } from 'src/lib/filter';
 
 //#region Composable & Prepare
 const props = withDefaults(defineProps<{
@@ -101,9 +124,13 @@ const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filt
   filters: [],
 });
 const loading = ref(false);
+const showPullRequests = ref(false);
 //#endregion
 
 //#region Computed
+const foundPullRequests = computed(() => {
+  return filterBy(dbStore.pullRequests, filter.value.filters);
+});
 //#endregion
 
 //#region Watch
