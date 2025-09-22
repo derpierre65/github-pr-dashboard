@@ -82,7 +82,7 @@
                 <q-item-section>
                   <q-item-label>{{ filterWithoutGroup(filter.name, groupName) }}</q-item-label>
                 </q-item-section>
-                <q-item-section class="tw:flex-row!" side>
+                <q-item-section class="tw:flex-row! tw:items-center!" side>
                   <q-icon v-if="filter.showAsNotification" name="fas fa-bell" size="xs" color="green-9">
                     <q-tooltip>Notifications enabled</q-tooltip>
                   </q-icon>
