@@ -53,13 +53,19 @@ function filterBy(pullRequests: GitHubPullRequest[], filters: DBFilter['filters'
         return false;
       }
 
-      if (filter.compare === 'includes') {
+      if (filter.compare === 'includes' || filter.compare === 'includes all') {
+        const includeAll = filter.compare === 'includes all';
         let found = false;
         if (Array.isArray(compareValue)) {
-          for (const value of compareValue) {
-            if (includes(filter.values, value)) {
+          for (const filterValue of filter.values) {
+            if (includes(compareValue, filterValue)) {
               found = true;
-              break;
+              if (!includeAll) {
+                break;
+              }
+            }
+            else if (includeAll) {
+              return false;
             }
           }
         }

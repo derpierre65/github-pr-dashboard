@@ -66,6 +66,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'org',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
@@ -75,6 +76,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'repo',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
@@ -84,6 +86,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'label',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
@@ -93,6 +96,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'user_review',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
@@ -102,6 +106,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'user_reviewed',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
@@ -111,6 +116,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'author',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
@@ -120,6 +126,7 @@ const availableFilterFields = ref(Object.freeze([
     value: 'calculatedReviewStatus',
     allowedCompare: [
       'includes',
+      'includes all',
       'excludes',
     ],
     allowMultiple: true,
