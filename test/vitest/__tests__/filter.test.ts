@@ -293,4 +293,20 @@ describe('filterByQuery', () => {
     expect(filterByQuery(pullRequests, 'labels != "my-label"', variables).length).eq(1);
     expect(filterByQuery(pullRequests, 'labels != "foo"', variables).length).eq(2);
   });
+
+  it('should find pull requests if using IN and = filter', () => {
+    const pullRequests = [
+      pullRequest1,
+      pullRequest2,
+    ];
+    expect(filterByQuery(pullRequests, 'author IN ("coderabbitai", "derpierre65") AND repository = "my-repository"', variables).length).eq(2);
+  });
+
+  it('should find pull requests if using two or more IN filter', () => {
+    const pullRequests = [
+      pullRequest1,
+      pullRequest2,
+    ];
+    expect(filterByQuery(pullRequests, 'author IN ("coderabbitai", "derpierre65") AND repository IN ("my-repository")', variables).length).eq(2);
+  });
 });
