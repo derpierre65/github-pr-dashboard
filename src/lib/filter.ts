@@ -16,6 +16,7 @@ jsep.addBinaryOp('!=', 6);
 jsep.addBinaryOp('=', 6);
 jsep.addBinaryOp('==', 6);
 jsep.addBinaryOp('<>', 6);
+jsep.addBinaryOp('~', 6);
 jsep.addLiteral('@me', 'hello');
 
 function useFilterVariables() {
@@ -64,7 +65,9 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       }
 
       switch (node.operator) {
-        case '!=': return leftValue !== rightValue;
+        case '<>':
+        case '!=':
+          return leftValue !== rightValue;
         case '==':
         case '=':
           return leftValue === rightValue;
@@ -76,11 +79,13 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
         case 'OR':
         case 'or':
           return !!(left || right);
+        case '~':
+          return (Array.isArray(left) ? left.join('') : left).includes(rightValue);
         case 'not in':
         case 'NOT IN': {
-          const inRightValue = Array.isArray(right) ? right : [ right, ];
+          const inRightValue = (Array.isArray(right) ? right : [ right, ]).map((value) => value.toLowerCase());
           if (!Array.isArray(left)) {
-            return !inRightValue.includes(left);
+            return !inRightValue.includes(left.toLowerCase());
           }
 
           if (Array.isArray(left)) {
@@ -93,9 +98,9 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
         }
         case 'in':
         case 'IN': {
-          const inRightValue = Array.isArray(right) ? right : [ right, ];
+          const inRightValue = (Array.isArray(right) ? right : [ right, ]).map((value) => value.toLowerCase());
           if (!Array.isArray(left)) {
-            return inRightValue.includes(left);
+            return inRightValue.includes(left.toLowerCase());
           }
 
           if (Array.isArray(left)) {
