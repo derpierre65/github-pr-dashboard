@@ -36,6 +36,10 @@ const filterAliases = {
   reviewedBy: 'latestOpinionatedReviews',
 } satisfies Record<string, keyof GitHubPullRequest>;
 
+function toLowerCase(value: string | number) {
+  return typeof value === 'string' ? value.toLowerCase() : value;
+}
+
 function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullRequest) {
   switch (node.type) {
     case 'BinaryExpression': {
@@ -93,13 +97,13 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
           return (Array.isArray(left) ? left.join('') : left).includes(rightValue);
         case 'not in':
         case 'NOT IN': {
-          const inRightValue = (Array.isArray(right) ? right : [ right, ]).map((value) => value.toLowerCase());
+          const inRightValue = (Array.isArray(right) ? right : [ right, ]).map(toLowerCase);
           if (!Array.isArray(left)) {
-            return !inRightValue.includes(left.toLowerCase());
+            return !inRightValue.includes(toLowerCase(left));
           }
 
           if (Array.isArray(left)) {
-            return !left.some((leftValue) => inRightValue.includes(leftValue.toLowerCase()));
+            return !left.some((leftValue) => inRightValue.includes(toLowerCase(leftValue)));
           }
 
           console.debug('unknown NOT IN', left, inRightValue);
@@ -108,13 +112,13 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
         }
         case 'in':
         case 'IN': {
-          const inRightValue = (Array.isArray(right) ? right : [ right, ]).map((value) => value.toLowerCase());
+          const inRightValue = (Array.isArray(right) ? right : [ right, ]).map(toLowerCase);
           if (!Array.isArray(left)) {
-            return inRightValue.includes(left.toLowerCase());
+            return inRightValue.includes(toLowerCase(left));
           }
 
           if (Array.isArray(left)) {
-            return left.some((leftValue) => inRightValue.includes(leftValue.toLowerCase()));
+            return left.some((leftValue) => inRightValue.includes(toLowerCase(leftValue)));
           }
 
           console.debug('unknown IN', left, node.right);

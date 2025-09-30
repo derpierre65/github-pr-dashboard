@@ -112,11 +112,11 @@ describe('filterByQuery', () => {
   const pullRequest3: GitHubPullRequest = {
     id: 'PR_kwDOE0XT186rQkX2',
     title: 'test(filter): my second test pull request',
-    isDraft: false,
+    isDraft: true,
     url: 'https://github.com/my-organization2/my-repository2/pull/1312',
     number: 1312,
     lastEditedAt: '2025-09-30T07:29:22Z',
-    merged: false,
+    merged: true,
     state: 'OPEN',
     totalCommentsCount: 33,
     createdAt: '2025-09-30T07:27:08Z',
@@ -146,25 +146,23 @@ describe('filterByQuery', () => {
         },
         state: 'APPROVED',
       },
-      {
-        author: {
-          login: 'coderabbitai',
-          avatarUrl: 'https://avatars.githubusercontent.com/in/347564?v=4',
-        },
-        state: 'APPROVED',
-      },
     ],
     org: 'my-organization',
     repo: 'my-repository',
     requestedReviewers: [
       {
-        login: 'derpierre65',
+        login: 'coderabbitai',
         avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
       },
     ],
     fetchedAt: new Date('Tue Sep 30 2025 16:16:13 GMT+0100 (Irish Standard Time)'),
     calculatedReviewStatus: 'approved',
   };
+  const allTestPullRequests = [
+    pullRequest1,
+    pullRequest2,
+    pullRequest3,
+  ];
   const variables = {
     '@me': 'derpierre65',
   };
@@ -252,37 +250,30 @@ describe('filterByQuery', () => {
   });
 
   describe('NOT IN', () => {
-    const pullRequests = [
-      pullRequest1,
-      pullRequest2,
-      pullRequest3,
-    ];
     it('should find pull requests where arrays contains any value', () => {
-      expect(filterByQuery(pullRequests, 'labels NOT IN ("my-label")', variables).length).eq(1);
-      expect(filterByQuery(pullRequests, 'labels NOT IN ("my-label", "foo")', variables).length).eq(0);
-      expect(filterByQuery(pullRequests, 'author NOT IN ("derpierre65", "foo")', variables).length).eq(1);
-      expect(filterByQuery(pullRequests, 'author NOT IN ("coderabbitai", "foo")', variables).length).eq(2);
+      expect(filterByQuery(allTestPullRequests, 'labels NOT IN ("my-label")', variables).length).eq(1);
+      expect(filterByQuery(allTestPullRequests, 'labels NOT IN ("my-label", "foo")', variables).length).eq(0);
+      expect(filterByQuery(allTestPullRequests, 'author NOT IN ("derpierre65", "foo")', variables).length).eq(1);
+      expect(filterByQuery(allTestPullRequests, 'author NOT IN ("coderabbitai", "foo")', variables).length).eq(2);
     });
   });
 
   describe('IN', () => {
-    const pullRequests = [
-      pullRequest1,
-      pullRequest2,
-      pullRequest3,
-    ];
     it('should find pull requests where arrays contains any value', () => {
-      expect(filterByQuery(pullRequests, 'labels IN ("my-label")', variables).length).eq(2);
-      expect(filterByQuery(pullRequests, 'labels IN ("my-second-label")', variables).length).eq(1);
-      expect(filterByQuery(pullRequests, 'labels IN ("my-label", "my-second-label", "foo")', variables).length).eq(3);
-      expect(filterByQuery(pullRequests, 'labels IN ("bar", "unknown", "foo")', variables).length).eq(1);
-      expect(filterByQuery(pullRequests, 'labels IN ("foobar", "baz")', variables).length).eq(0);
-      expect(filterByQuery(pullRequests, 'reviewedBy IN ("coderabbitai")', variables).length).eq(3);
+      expect(filterByQuery(allTestPullRequests, 'labels IN ("my-label")', variables).length).eq(2);
+      expect(filterByQuery(allTestPullRequests, 'labels IN ("my-second-label")', variables).length).eq(1);
+      expect(filterByQuery(allTestPullRequests, 'labels IN ("my-label", "my-second-label", "foo")', variables).length).eq(3);
+      expect(filterByQuery(allTestPullRequests, 'labels IN ("bar", "unknown", "foo")', variables).length).eq(1);
+      expect(filterByQuery(allTestPullRequests, 'labels IN ("foobar", "baz")', variables).length).eq(0);
+      expect(filterByQuery(allTestPullRequests, 'reviewedBy IN ("coderabbitai")', variables).length).eq(2);
     });
     it('should find pull requests where string contains any value', () => {
-      expect(filterByQuery(pullRequests, 'author IN ("derpierre65")', variables).length).eq(2);
-      expect(filterByQuery(pullRequests, 'author IN (@me, "coderabbitai", "unknownUser")', variables).length).eq(3);
-      expect(filterByQuery(pullRequests, 'author IN (@me, coderabbitai, unknownUser)', variables).length).eq(3);
+      expect(filterByQuery(allTestPullRequests, 'author IN ("derpierre65")', variables).length).eq(2);
+      expect(filterByQuery(allTestPullRequests, 'author IN (@me, "coderabbitai", "unknownUser")', variables).length).eq(3);
+      expect(filterByQuery(allTestPullRequests, 'author IN (@me, coderabbitai, unknownUser)', variables).length).eq(3);
+    });
+    it('should find pull requests where value contains numbers', () => {
+      expect(filterByQuery(allTestPullRequests, 'totalCommentsCount IN (33,1,2,3)', variables).length).eq(3);
     });
   });
 
@@ -292,14 +283,9 @@ describe('filterByQuery', () => {
   });
 
   it('should find pull requests for arrays with one value', () => {
-    const pullRequests = [
-      pullRequest1,
-      pullRequest2,
-      pullRequest3,
-    ];
-    expect(filterByQuery(pullRequests, 'labels = "my-label"', variables).length).eq(2);
-    expect(filterByQuery(pullRequests, 'labels != "my-label"', variables).length).eq(1);
-    expect(filterByQuery(pullRequests, 'labels != "foo"', variables).length).eq(2);
+    expect(filterByQuery(allTestPullRequests, 'labels = "my-label"', variables).length).eq(2);
+    expect(filterByQuery(allTestPullRequests, 'labels != "my-label"', variables).length).eq(1);
+    expect(filterByQuery(allTestPullRequests, 'labels != "foo"', variables).length).eq(2);
   });
 
   it('should find pull requests if using IN and = filter', () => {
@@ -315,11 +301,20 @@ describe('filterByQuery', () => {
       pullRequest1,
       pullRequest2,
     ];
-    expect(filterByQuery(pullRequests, 'author IN ("coderabbitai", "derpierre65") AND repository IN ("my-repository")', variables).length).eq(2);
+    expect(filterByQuery(pullRequests, 'author IN ("coderabbitai", "derpierre65") AND repository IN ("my-repository")').length).eq(2);
     expect(filterByQuery(
       pullRequests,
       'reviewStatus IN ("pending", "changes_requested", "approved") AND userReviewRequested IN ("foo", "bar")',
-      variables,
     ).length).eq(0);
+  });
+
+  it('should find pull requests if using aliases', () => {
+    expect(filterByQuery(allTestPullRequests, 'isDraft = false').length).eq(2);
+    expect(filterByQuery(allTestPullRequests, 'organization = "my-organization"').length).eq(3);
+    expect(filterByQuery(allTestPullRequests, 'repository = "my-repository"').length).eq(3);
+    expect(filterByQuery(allTestPullRequests, 'reviewStatus = "approved"').length).eq(3);
+    expect(filterByQuery(allTestPullRequests, 'comments = 33').length).eq(2);
+    expect(filterByQuery(allTestPullRequests, 'reviewedBy = coderabbitai').length).eq(2);
+    expect(filterByQuery(allTestPullRequests, 'userReviewRequested = coderabbitai').length).eq(1);
   });
 });
