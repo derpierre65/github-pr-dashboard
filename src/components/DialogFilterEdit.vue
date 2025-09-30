@@ -1,6 +1,6 @@
 <template>
   <q-dialog ref="dialogRef" persistent no-shake>
-    <q-card class="no-shadow tw:max-w-[1200px]! full-width">
+    <q-card class="no-shadow tw:!max-w-[1200px] full-width">
       <q-card-section class="tw:flex tw:bg-stone-800 q-py-sm items-center">
         <span>Filter</span>
         <q-space />
@@ -205,7 +205,7 @@ const possibleRepositories = computed(() => {
 });
 
 const possibleLabels = computed(() => {
-  return [ ...new Set(dbStore.pullRequests.map((pullRequest) => pullRequest.labels.map((label) => label.name)).flat(1)), ];
+  return [ ...new Set(dbStore.pullRequests.map((pullRequest) => (pullRequest.labels || []).map((label) => label.name)).flat(1)), ];
 });
 
 const possibleUsers = computed(() => {
@@ -217,8 +217,8 @@ const possibleUsers = computed(() => {
   ].concat([
     ...new Set(dbStore.pullRequests.reduce((users, pullRequest) => {
       users.push(pullRequest.author.login);
-      users.push(...pullRequest.requestedReviewers.map((reviewer) => reviewer.login));
-      users.push(...pullRequest.latestOpinionatedReviews.map((review) => review.author.login));
+      users.push(...(pullRequest.requestedReviewers || []).map((reviewer) => reviewer.login));
+      users.push(...(pullRequest.latestOpinionatedReviews || []).map((review) => review.author.login));
 
       return users;
     }, [])),
@@ -233,7 +233,7 @@ const possibleUsers = computed(() => {
 const simpleFilterOptions = computed(() => {
   return [
     {
-      name: 'repository',
+      name: 'repo',
       props: {
         label: 'Repository',
         options: possibleRepositories.value.map((repository) => ({
@@ -399,10 +399,6 @@ function stripValue(node) {
 }
 
 function getFieldValue(fieldName: string) {
-  fieldName = {
-    repository: 'repo',
-  }[fieldName] || fieldName;
-
   if (!queryExpressions.value[fieldName]) {
     return {
       type: '=',
@@ -510,7 +506,7 @@ function migrateFilter() {
     else if (filterPart.compare === 'includes') {
       const values = filterPart.value ? [ filterPart.value, ] : filterPart.values;
       if (values.length > 1) {
-        parts.push(`${newFilterName} IN (${filterPart.compare.map((value) => `"${value}"`).join(', ')})`);
+        parts.push(`${newFilterName} IN (${values.map((value) => `"${value}"`).join(', ')})`);
       }
       else if (values.length === 1) {
         parts.push(`${newFilterName} = "${values[0]}"`);
@@ -519,7 +515,7 @@ function migrateFilter() {
     else if (filterPart.compare === 'excludes') {
       const values = filterPart.value ? [ filterPart.value, ] : filterPart.values;
       if (values.length > 1) {
-        parts.push(`${newFilterName} NOT IN (${filterPart.compare.map((value) => `"${value}"`).join(', ')})`);
+        parts.push(`${newFilterName} NOT IN (${values.map((value) => `"${value}"`).join(', ')})`);
       }
       else if (values.length === 1) {
         parts.push(`${newFilterName} != "${values[0]}"`);
