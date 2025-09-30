@@ -9,6 +9,9 @@ on:
       - synchronize
       - ready_for_review
 
+permissions:
+  pull-requests: write
+
 concurrency:
   group: gh-pr-tests-${{ github.head_ref || github.event.pull_request.head.ref }}
   cancel-in-progress: true
