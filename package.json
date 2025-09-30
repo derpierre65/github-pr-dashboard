@@ -11,7 +11,8 @@
     "dev": "quasar dev",
     "build": "quasar build",
     "test:unit:ui": "vitest --ui",
-    "test:unit:ci": "vitest run"
+    "test:unit:ci": "vitest run",
+    "postinstall": "quasar prepare"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
