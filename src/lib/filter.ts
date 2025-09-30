@@ -95,7 +95,7 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
         case 'or':
           return !!(left || right);
         case '~':
-          return (Array.isArray(left) ? left.join('') : left).includes(rightValue);
+          return (Array.isArray(left) ? left.map(String).join('') : String(left)).includes(String(rightValue));
         case 'not in':
         case 'NOT IN': {
           const inRightValue = (Array.isArray(right) ? right : [ right, ]).map(toLowerCase);
@@ -148,7 +148,7 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
         return values;
       }, []);
 
-    case 'Identifier':
+    case 'Identifier': {
       const fieldName = filterAliases[node.name] || node.name;
       if (fieldName === 'author') {
         return context[node.name]?.login || null;
@@ -164,6 +164,7 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       }
 
       return context[fieldName];
+    }
 
     case 'Literal':
       return node.value;
