@@ -447,10 +447,9 @@ async function updateSettings(field: string) {
       });
       return;
     }
-  }
 
-  const { data, } = await GitHub.fetchUser();
-  dbStore.settings.username = data.login;
+    dbStore.settings.username = response.data.login;
+  }
 
   window.localStorage.setItem('pr_dashboard_settings', JSON.stringify(dbStore.settings));
 }

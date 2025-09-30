@@ -3,7 +3,7 @@
     :type="visible ? 'text' : 'password'"
     dense
   >
-    <template #after>
+    <template #append>
       <q-icon
         class="tw:text-base! cursor-pointer"
         :name="visible ? 'fas fa-eye-slash' : 'fas fa-eye'"

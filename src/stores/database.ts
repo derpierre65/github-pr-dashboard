@@ -12,6 +12,7 @@ const useDatabaseStore = defineStore('db', () => {
     username: '',
     token: '',
   });
+  const authenticated = ref(false);
 
   function deleteEntry(storeName: string, id: string | number) {
     const pullRequestStore = db.value!.transaction([ storeName, ], 'readwrite').objectStore(storeName);
@@ -104,6 +105,7 @@ const useDatabaseStore = defineStore('db', () => {
   }
 
   return {
+    authenticated,
     db,
     settings,
     pullRequests,
