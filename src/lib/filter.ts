@@ -17,7 +17,6 @@ jsep.addBinaryOp('=', 6);
 jsep.addBinaryOp('==', 6);
 jsep.addBinaryOp('<>', 6);
 jsep.addBinaryOp('~', 6);
-jsep.addLiteral('@me', 'hello');
 
 function useFilterVariables() {
   const dbStore = useDatabaseStore();
@@ -178,8 +177,8 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
 
 function getQueryExpressions(query: string, variables: Record<string, string> = {}) {
   for (const [ key, value, ] of Object.entries(variables)) {
-    query = query.replace(new RegExp(`"${key}"`, 'igm'), `"${value}"`);
-    query = query.replace(new RegExp(key, 'igm'), `"${value}"`);
+    query = query.replace(new RegExp(`"${key}"`, 'g'), `"${value}"`);
+    query = query.replace(new RegExp(key, 'g'), `"${value}"`);
   }
 
   try {
