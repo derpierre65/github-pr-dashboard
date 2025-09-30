@@ -140,11 +140,9 @@
             <span class="text-grey-6">Settings</span>
           </div>
           <div class="q-gutter-y-md q-mt-xs">
-            <q-input
+            <InputPassword
               v-model="dbStore.settings.token"
               label="GitHub Token"
-              type="password"
-              dense
               @change="updateSettings('token')"
             />
             <small>Create a <a
@@ -183,6 +181,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import GitHub, { GitHubResponse } from 'src/lib/github';
 import { filterBy } from 'src/lib/filter';
 import PullRequestTable from 'components/PullRequestTable.vue';
+import InputPassword from 'components/InputPassword.vue';
 
 dayjs.extend(relativeTime);
 
