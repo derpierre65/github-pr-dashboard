@@ -1,6 +1,6 @@
 <template>
   <q-dialog ref="dialogRef" persistent no-shake>
-    <q-card class="no-shadow tw:max-w-[800px]! full-width">
+    <q-card class="no-shadow tw:max-w-[1200px]! full-width">
       <q-card-section class="tw:flex tw:bg-stone-800 q-py-sm items-center">
         <span>Filter</span>
         <q-space />
@@ -48,19 +48,51 @@
           />
         </div>
 
-        <div v-if="filter.filters === null">
-          <q-input
-            :model-value="filter.query"
-            label="Search Query"
-            :error="queryErrors !== null"
-            :error-message="queryErrors || undefined"
-            outlined
-            dense
-            autogrow
-            hide-bottom-space
-            @keydown.enter="submitQuery"
-            @change="filter.query = $event"
-          />
+        <div v-if="filter.filters === null" class="flex tw:gap-2 items-start">
+          <q-btn-group>
+            <q-btn
+              :color="queryLanguageMode ? '' : 'primary'"
+              :disable="!canUseSimpleFilter"
+              label="Simple"
+              outline
+              no-caps
+              @click="queryLanguageMode = false"
+            >
+              <q-tooltip v-if="!canUseSimpleFilter">
+                Your query is too complex for the simple mode.
+              </q-tooltip>
+            </q-btn>
+            <q-btn
+              label="Query Language"
+              :color="queryLanguageMode ? 'primary' : ''"
+              outline
+              no-caps
+              @click="queryLanguageMode = true"
+            />
+          </q-btn-group>
+          <div v-if="queryLanguageMode" class="tw:flex-auto">
+            <q-input
+              :model-value="filter.query"
+              :error="queryErrors !== null"
+              :error-message="queryErrors || undefined"
+              label="Search Query"
+              outlined
+              dense
+              autogrow
+              hide-bottom-space
+              @keydown.enter="submitQuery"
+              @change="filter.query = $event"
+            />
+          </div>
+          <template v-else>
+            <FilterSelect
+              v-for="field of simpleFilterOptions"
+              :key="field.name"
+              v-bind="field.props"
+              :model-value="getFieldValue(field.name)"
+              @update:model-value="updateQuery(field.name, $event)"
+            />
+          </template>
         </div>
 
         <template v-else>
@@ -127,6 +159,7 @@ import useDatabaseStore from 'stores/database';
 import FilterOption from 'components/FilterOption.vue';
 import PullRequestTable from 'components/PullRequestTable.vue';
 import { executeFilter, getQueryExpressions, useFilterVariables } from 'src/lib/filter';
+import FilterSelect from 'components/FilterSelect.vue';
 
 //#region Composable & Prepare
 const props = withDefaults(defineProps<{
@@ -143,6 +176,115 @@ const {
 } = useDialogPluginComponent();
 
 const filterVariables = useFilterVariables();
+
+const possibleRepositories = computed(() => {
+  return [ ...new Set(dbStore.pullRequests.map((pullRequest) => pullRequest.repo)), ];
+});
+
+const possibleLabels = computed(() => {
+  return [ ...new Set(dbStore.pullRequests.map((pullRequest) => pullRequest.labels.map((label) => label.name)).flat(1)), ];
+});
+
+const possibleUsers = computed(() => {
+  return [
+    {
+      value: '@me',
+      label: 'Current User',
+    },
+  ].concat([
+    ...new Set(dbStore.pullRequests.reduce((users, pullRequest) => {
+      users.push(pullRequest.author.login);
+      users.push(...pullRequest.requestedReviewers.map((reviewer) => reviewer.login));
+      users.push(...pullRequest.latestOpinionatedReviews.map((review) => review.author.login));
+
+      return users;
+    }, [])),
+  ].map((username) => {
+    return {
+      value: username,
+      label: username,
+    };
+  }));
+});
+
+const simpleFilterOptions = computed(() => {
+  return [
+    {
+      name: 'repository',
+      props: {
+        label: 'Repository',
+        options: possibleRepositories.value.map((repository) => ({
+          label: repository,
+          value: repository,
+        })),
+      },
+    },
+    {
+      name: 'author',
+      props: {
+        label: 'Author',
+        options: possibleUsers.value,
+      },
+    },
+    {
+      name: 'userReviewRequested',
+      props: {
+        label: 'Review Requested by',
+        options: possibleUsers.value,
+      },
+    },
+    {
+      name: 'reviewedBy',
+      props: {
+        label: 'Reviewed by',
+        options: possibleUsers.value,
+      },
+    },
+    {
+      name: 'reviewStatus',
+      props: {
+        label: 'Review Status',
+        options: [
+          {
+            label: 'Approved',
+            value: 'approved',
+          },
+          {
+            label: 'Changes Requested',
+            value: 'changes_requested',
+          },
+          {
+            label: 'Review required',
+            value: 'pending',
+          },
+        ],
+      },
+    },
+    {
+      name: 'labels',
+      props: {
+        label: 'Label',
+        options: possibleLabels.value,
+      },
+    },
+    {
+      name: 'draft',
+      props: {
+        label: 'Draft',
+        options: [
+          {
+            label: 'Yes',
+            value: true,
+          },
+          {
+            label: 'No',
+            value: false,
+          },
+        ],
+      },
+    },
+  ];
+});
 //#endregion
 
 //#region Data
@@ -154,6 +296,7 @@ const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filt
   filters: null,
   query: '',
 });
+const queryLanguageMode = ref(false);
 const loading = ref(false);
 const showPullRequests = ref(false);
 //#endregion
@@ -167,6 +310,19 @@ const foundPullRequests = computed(() => {
   return executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
 });
 
+const queryExpressions = computed(() => {
+  try {
+    return filter.value.query ? astToObject(getQueryExpressions(filter.value.query)) : {};
+  }
+  catch(error) {
+    return null;
+  }
+});
+
+const canUseSimpleFilter = computed(() => {
+  return queryExpressions.value !== null && !queryExpressions.value.undefined;
+});
+
 const queryErrors = computed(() => {
   if (filter.value.filters !== null) {
     return null;
@@ -176,8 +332,8 @@ const queryErrors = computed(() => {
     getQueryExpressions(filter.value.query, filterVariables.value);
     return null;
   }
-  catch(e) {
-    return e.message;
+  catch(error) {
+    return error.message;
   }
 });
 //#endregion
@@ -189,6 +345,84 @@ const queryErrors = computed(() => {
 //#endregion
 
 //#region Methods
+function astToObject(node) {
+  const operator = node.operator.toUpperCase();
+  switch (node.type) {
+    case 'BinaryExpression': {
+      if (operator === 'AND') {
+        return {
+          ...astToObject(node.left),
+          ...astToObject(node.right),
+        };
+      }
+
+      if ([
+        'IN',
+        'NOT IN',
+      ].includes(operator)) {
+        return {
+          [node.left.name]: {
+            type: operator === 'IN' ? '=' : '!=',
+            value: node.right.expressions.map(stripValue),
+          },
+        };
+      }
+
+      return {
+        [node.left.name]: {
+          type: node.operator,
+          value: [ stripValue(node.right), ],
+        },
+      };
+    }
+
+    default:
+      throw new Error(`Unsupported node type: ${node.type}`);
+  }
+}
+
+function stripValue(node) {
+  if (node.type === 'Literal') {
+    return node.value;
+  }
+  if (node.type === 'Identifier') {
+    return node.name;
+  }
+  return null;
+}
+
+function getFieldValue(fieldName: string) {
+  if (!queryExpressions.value[fieldName]) {
+    return {
+      type: '=',
+      value: [],
+    };
+  }
+
+  return queryExpressions.value[fieldName];
+}
+
+function updateQuery(fieldName: string, value: any) {
+  const newExpressions = Object.assign({}, queryExpressions.value);
+  newExpressions[fieldName] = value;
+
+  const parts = [];
+  for (const key of Object.keys(newExpressions)) {
+    if (newExpressions[key].value.length === 1) {
+      let value = newExpressions[key].value[0];
+      if (typeof value === 'string') {
+        value = `"${value}"`;
+      }
+
+      parts.push(`${key} = ${value}`);
+    }
+    else if (newExpressions[key].value.length) {
+      parts.push(`${key} IN (${newExpressions[key].value.map((value) => `"${value}"`).join(', ')})`);
+    }
+  }
+  filter.value.query = parts.join(' AND ');
+}
+
 function addFilter() {
   filter.value.filters.push({
     type: '',
@@ -235,6 +469,8 @@ function submitQuery(event: KeyboardEvent) {
 
   event.preventDefault();
 
+  console.log(event.target.value);
+
   filter.value.query = event.target.value;
 }
 
@@ -253,6 +489,9 @@ function switchExperimentalFilter() {
 filter.value.query ||= '';
 if (filter.value.filters?.length === 0) {
   addFilter();
+}
+if (filter.value.filters === null && !canUseSimpleFilter.value) {
+  queryLanguageMode.value = true;
 }
 //#endregion
 </script>

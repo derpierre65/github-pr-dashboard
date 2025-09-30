@@ -32,6 +32,8 @@ const filterAliases = {
   organization: 'org',
   repository: 'repo',
   reviewStatus: 'calculatedReviewStatus',
+  userReviewRequested: 'requestedReviewers',
+  reviewedBy: 'latestOpinionatedReviews',
 } satisfies Record<string, keyof GitHubPullRequest>;
 
 function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullRequest) {
@@ -67,9 +69,17 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       switch (node.operator) {
         case '<>':
         case '!=':
+          if (Array.isArray(leftValue)) {
+            return !leftValue.includes(rightValue);
+          }
+
           return leftValue !== rightValue;
         case '==':
         case '=':
+          if (Array.isArray(leftValue)) {
+            return leftValue.includes(rightValue);
+          }
+
           return leftValue === rightValue;
         case '&&':
         case 'and':
@@ -134,22 +144,21 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       }, []);
 
     case 'Identifier':
-      if (node.name === 'author') {
+      const fieldName = filterAliases[node.name] || node.name;
+      if (fieldName === 'author') {
         return context[node.name]?.login || null;
       }
-      if (node.name === 'labels') {
+      if (fieldName === 'labels') {
         return context.labels.map((label) => label.name) || [];
       }
-      if ([
-        'user_reviewed',
-        'userReviewed',
-        'reviewed-by',
-        'reviewed_by',
-      ].includes(node.name)) {
-        return pullRequest.latestOpinionatedReviews.map((review) => review.author.login);
+      if (fieldName === 'latestOpinionatedReviews') {
+        return context.latestOpinionatedReviews.map((reviewer) => reviewer.author.login);
+      }
+      if (fieldName === 'requestedReviewers') {
+        return context.requestedReviewers.map((reviewer) => reviewer.login);
       }
 
-      return context[filterAliases[node.name] || node.name];
+      return context[fieldName];
 
     case 'Literal':
       return node.value;
@@ -162,7 +171,18 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
 }
 
 function getQueryExpressions(query: string, variables: Record<string, string> = {}) {
-  return jsep(query.replace(/@me/g, `"${variables['@me']}"`));
+  for (const [ key, value, ] of Object.entries(variables)) {
+    query = query.replace(new RegExp(`"${key}"`, 'igm'), `"${value}"`);
+    query = query.replace(new RegExp(key, 'igm'), `"${value}"`);
+  }
+
+  try {
+    return jsep(query);
+  }
+  catch(error) {
+    console.error(error);
+    return {};
+  }
 }
 
 function filterByQuery(pullRequests: GitHubPullRequest[], query: string, variables: Record<string, string> = {}) {

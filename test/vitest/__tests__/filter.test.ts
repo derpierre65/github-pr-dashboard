@@ -264,6 +264,7 @@ describe('filterByQuery', () => {
       expect(filterByQuery(pullRequests, 'author NOT IN ("coderabbitai", "foo")', variables).length).eq(2);
     });
   });
+
   describe('IN', () => {
     const pullRequests = [
       pullRequest1,
@@ -276,6 +277,7 @@ describe('filterByQuery', () => {
       expect(filterByQuery(pullRequests, 'labels IN ("my-label", "my-second-label", "foo")', variables).length).eq(3);
       expect(filterByQuery(pullRequests, 'labels IN ("bar", "unknown", "foo")', variables).length).eq(1);
       expect(filterByQuery(pullRequests, 'labels IN ("foobar", "baz")', variables).length).eq(0);
+      expect(filterByQuery(pullRequests, 'reviewedBy IN ("coderabbitai")', variables).length).eq(3);
     });
     it('should find pull requests where string contains any value', () => {
       expect(filterByQuery(pullRequests, 'author IN ("derpierre65")', variables).length).eq(2);
@@ -284,12 +286,18 @@ describe('filterByQuery', () => {
     });
   });
 
+  it('should find pull requests if variables are quoted', () => {
+    expect(filterByQuery([ pullRequest1, ], 'author IN ("@me")', variables).length).eq(1);
+    expect(filterByQuery([ pullRequest1, ], 'author = "@me"', variables).length).eq(1);
+  });
+
   it('should find pull requests for arrays with one value', () => {
     const pullRequests = [
       pullRequest1,
       pullRequest2,
+      pullRequest3,
     ];
-    expect(filterByQuery(pullRequests, 'labels = "my-label"', variables).length).eq(1);
+    expect(filterByQuery(pullRequests, 'labels = "my-label"', variables).length).eq(2);
     expect(filterByQuery(pullRequests, 'labels != "my-label"', variables).length).eq(1);
     expect(filterByQuery(pullRequests, 'labels != "foo"', variables).length).eq(2);
   });
@@ -308,5 +316,10 @@ describe('filterByQuery', () => {
       pullRequest2,
     ];
     expect(filterByQuery(pullRequests, 'author IN ("coderabbitai", "derpierre65") AND repository IN ("my-repository")', variables).length).eq(2);
+    expect(filterByQuery(
+      pullRequests,
+      'reviewStatus IN ("pending", "changes_requested", "approved") AND userReviewRequested IN ("foo", "bar")',
+      variables,
+    ).length).eq(0);
   });
 });
