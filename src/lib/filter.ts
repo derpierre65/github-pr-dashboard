@@ -34,6 +34,7 @@ const filterAliases = {
   reviewStatus: 'calculatedReviewStatus',
   userReviewRequested: 'requestedReviewers',
   reviewedBy: 'latestOpinionatedReviews',
+  comments: 'totalCommentsCount',
 } satisfies Record<string, keyof GitHubPullRequest>;
 
 function toLowerCase(value: string | number) {
