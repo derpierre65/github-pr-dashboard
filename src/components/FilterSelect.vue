@@ -15,7 +15,7 @@
 import { computed } from 'vue';
 
 const model = defineModel<{
-  value: string[] | string;
+  value: string[];
   type: '=' | '!=';
 }>({
   required: true,
