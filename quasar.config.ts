@@ -1,11 +1,8 @@
-/* eslint-env node */
-
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
-
-
 import { configure } from 'quasar/wrappers';
+import generateFile from 'vite-plugin-generate-file';
 
+process.env.VITE_BUILD_TIMESTAMP = Date.now().toString();
+process.env.VITE_BUILD_VERSION = process.env.npm_package_version;
 
 export default configure((/* ctx */) => {
   return {
@@ -67,9 +64,18 @@ export default configure((/* ctx */) => {
       // viteVuePluginOptions: {},
 
 
-      // vitePlugins: [
-      //   [ 'package-name', { ..pluginOptions.. }, { server: true, client: true } ]
-      // ]
+      vitePlugins: [
+        generateFile([
+          {
+            type: 'json',
+            output: './assets/version.json',
+            data: {
+              version: process.env.npm_package_version,
+              date: parseInt(process.env.VITE_BUILD_TIMESTAMP),
+            },
+          },
+        ]),
+      ],
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
