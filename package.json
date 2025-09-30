@@ -28,14 +28,15 @@
     "@quasar/quasar-app-extension-testing-unit-vitest": "^1.2.3",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^20.5.9",
+    "@vitest/ui": "^3.1.2",
+    "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.2",
     "dayjs": "^1.11.18",
     "jsep": "^1.4.0",
     "tailwindcss": "^4.1.13",
     "typescript": "~5.5.3",
-    "vitest": "^3.1.2",
-    "@vue/test-utils": "^2.4.6",
-    "@vitest/ui": "^3.1.2"
+    "vite-plugin-generate-file": "^0.3.1",
+    "vitest": "^3.1.2"
   },
   "engines": {
     "node": "^24 || ^22 || ^20 || ^18",
