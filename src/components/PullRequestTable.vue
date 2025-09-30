@@ -1,5 +1,5 @@
 <template>
-  <div class="tw:flex tw:flex-col tw:divide-y-[1px] tw:divide-[#3d444db3] tw:border-[#3d444db3] tw:border-2 q-mt-md">
+  <div class="tw:flex tw:flex-col tw:divide-y-[1px] tw:divide-[#3d444db3] tw:border-[#3d444db3] tw:border-2">
     <PullRequest
       v-for="pullRequest in items"
       :key="pullRequest.id"
