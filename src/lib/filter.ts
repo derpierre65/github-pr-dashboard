@@ -1,6 +1,6 @@
 import useDatabaseStore from 'stores/database';
 import jsep from 'jsep';
-import { ref } from 'vue';
+import { computed } from 'vue';
 
 jsep.addBinaryOp('AND', 2);
 jsep.addBinaryOp('and', 2);
@@ -22,9 +22,9 @@ jsep.addLiteral('@me', 'hello');
 function useFilterVariables() {
   const dbStore = useDatabaseStore();
 
-  return ref({
+  return computed(() => ({
     '@me': dbStore.settings.username,
-  });
+  }));
 }
 
 const filterAliases = {
