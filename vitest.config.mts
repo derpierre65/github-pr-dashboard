@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: 'test/vitest/setup-file.ts',
     include: [ 'test/vitest/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', ],
+    reporters: process.env.CI && !process.env.GENERATE_ROUTES ? [ 'vitest-ctrf-json-reporter', ] : [],
   },
   plugins: [
     vue({
