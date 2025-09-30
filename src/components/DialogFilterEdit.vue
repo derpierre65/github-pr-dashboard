@@ -15,12 +15,14 @@
           dense
         />
 
-        <q-toggle
-          :model-value="filter.showAsNotification"
-          label="Show Notification if filter count increases"
-          dense
-          @update:model-value="requestNotificationPermission"
-        />
+        <div>
+          <q-toggle
+            :model-value="filter.showAsNotification"
+            label="Show Notification if filter count increases"
+            dense
+            @update:model-value="requestNotificationPermission"
+          />
+        </div>
 
         <q-input
           v-if="filter.showAsNotification"
@@ -37,25 +39,51 @@
           </ul>
         </div>
 
-        <div class="tw:flex tw:gap-2 tw:flex-col">
-          <FilterOption
-            v-for="(row, index) in filter.filters"
-            :key="index"
-            v-model="filter.filters[index]"
-            :filter="row"
-            @remove="filter.filters.splice(index, 1)"
+        <div>
+          <q-toggle
+            label="Use new experimental filter system"
+            :model-value="filter.filters === null"
+            dense
+            @update:model-value="switchExperimentalFilter"
           />
         </div>
 
-        <div class="text-right q-mt-md">
-          <q-btn
-            :loading="loading"
-            label="Add Filter"
-            color="primary"
-            no-caps
-            @click="addFilter"
+        <div v-if="filter.filters === null">
+          <q-input
+            :model-value="filter.query"
+            label="Search Query"
+            :error="queryErrors !== null"
+            :error-message="queryErrors || undefined"
+            outlined
+            dense
+            autogrow
+            hide-bottom-space
+            @keydown.enter="submitQuery"
+            @change="filter.query = $event"
           />
         </div>
+
+        <template v-else>
+          <div class="tw:flex tw:gap-2 tw:flex-col">
+            <FilterOption
+              v-for="(row, index) in filter.filters"
+              :key="index"
+              v-model="filter.filters[index]"
+              :filter="row"
+              @remove="filter.filters.splice(index, 1)"
+            />
+          </div>
+
+          <div class="text-right q-mt-md">
+            <q-btn
+              :loading="loading"
+              label="Add Filter"
+              color="primary"
+              no-caps
+              @click="addFilter"
+            />
+          </div>
+        </template>
 
         <div class="flex tw:gap-2">
           <q-banner class="bg-blue-10 tw:flex-auto" dense>
@@ -98,7 +126,7 @@ import { computed, ref } from 'vue';
 import useDatabaseStore from 'stores/database';
 import FilterOption from 'components/FilterOption.vue';
 import PullRequestTable from 'components/PullRequestTable.vue';
-import { filterBy } from 'src/lib/filter';
+import { executeFilter, getQueryExpressions, useFilterVariables } from 'src/lib/filter';
 
 //#region Composable & Prepare
 const props = withDefaults(defineProps<{
@@ -113,6 +141,8 @@ const {
   onDialogCancel,
   onDialogOK,
 } = useDialogPluginComponent();
+
+const filterVariables = useFilterVariables();
 //#endregion
 
 //#region Data
@@ -121,7 +151,8 @@ const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filt
   name: '',
   showAsNotification: false,
   notificationText: '',
-  filters: [],
+  filters: null,
+  query: '',
 });
 const loading = ref(false);
 const showPullRequests = ref(false);
@@ -129,7 +160,25 @@ const showPullRequests = ref(false);
 
 //#region Computed
 const foundPullRequests = computed(() => {
-  return filterBy(dbStore.pullRequests, filter.value.filters);
+  if (queryErrors.value) {
+    return [];
+  }
+
+  return executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
+});
+
+const queryErrors = computed(() => {
+  if (filter.value.filters !== null) {
+    return null;
+  }
+
+  try {
+    getQueryExpressions(filter.value.query, filterVariables.value);
+    return null;
+  }
+  catch(e) {
+    return e.message;
+  }
 });
 //#endregion
 
@@ -178,10 +227,31 @@ async function submit() {
     loading.value = false;
   }
 }
+
+function submitQuery(event: KeyboardEvent) {
+  if (event.key !== 'Enter' || event.shiftKey) {
+    return;
+  }
+
+  event.preventDefault();
+
+  filter.value.query = event.target.value;
+}
+
+function switchExperimentalFilter() {
+  if (filter.value.filters === null) {
+    filter.value.filters = [];
+    addFilter();
+  }
+  else {
+    filter.value.filters = null;
+  }
+}
 //#endregion
 
 //#region Created
-if (filter.value.filters.length === 0) {
+filter.value.query ||= '';
+if (filter.value.filters?.length === 0) {
   addFilter();
 }
 //#endregion

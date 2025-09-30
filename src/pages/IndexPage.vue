@@ -179,7 +179,7 @@ import DialogFilterEdit from 'components/DialogFilterEdit.vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import GitHub, { GitHubResponse } from 'src/lib/github';
-import { filterBy } from 'src/lib/filter';
+import { executeFilter, useFilterVariables } from 'src/lib/filter';
 import PullRequestTable from 'components/PullRequestTable.vue';
 import InputPassword from 'components/InputPassword.vue';
 
@@ -198,10 +198,12 @@ const repositories = ref<DBRepository[]>([]);
 const autoReload = ref(true);
 const reloading = ref(false);
 
+const filterVariables = useFilterVariables();
+
 const filteredPullRequests = computed(() => {
   const filteredPullRequests = currentFilters.value.length ? [] : dbStore.pullRequests;
   for (const currentFilter of currentFilters.value) {
-    filteredPullRequests.push(...filterBy(dbStore.pullRequests, currentFilter.filters));
+    filteredPullRequests.push(...executeFilter(dbStore.pullRequests, currentFilter, filterVariables.value));
   }
 
   return filteredPullRequests.sort((pullRequestA, pullRequestB) => {
@@ -230,7 +232,7 @@ const filterValues = computed(() => {
   const filterValues = Object.fromEntries(filters.value.map((filter) => {
     return [
       filter.id,
-      filterBy(dbStore.pullRequests, filter.filters).length,
+      executeFilter(dbStore.pullRequests, filter).length,
     ];
   }));
   console.timeEnd('Recalculate Filter Values');

@@ -17,7 +17,8 @@ type DBFilter = {
     compare: string;
     value?: string | number;
     values?: Array<string | number>;
-  }>;
+  }> | null;
+  query: string;
 };
 
 type GitHubPullRequest = {
@@ -28,7 +29,7 @@ type GitHubPullRequest = {
   org: string;
   repo: string;
   labels: Array<{
-    id: number;
+    id: string;
     name: string;
     color: string;
   }>;
@@ -45,6 +46,8 @@ type GitHubPullRequest = {
     state: 'CHANGES_REQUESTED' | 'APPROVED';
   }>;
   createdAt: string;
+  lastEditedAt: string;
+  merged: boolean;
   calculatedReviewStatus: 'approved' | 'changes_requested' | 'pending';
   updatedAt: string;
   fetchedAt: Date;
