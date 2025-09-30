@@ -1,5 +1,6 @@
 # GitHub Pull Request Dashboard
 
+[![Tests](https://img.shields.io/github/actions/workflow/status/derpierre65/github-pr-dashboard/test.yml?branch=main&label=tests)](https://github.com/derpierre65/github-pr-dashboard/actions)
 [![License](https://img.shields.io/github/license/derpierre65/github-pr-dashboard)](https://github.com/derpierre65/github-pr-dashboard/blob/main/LICENSE)
 [![GitHub Top Language](https://img.shields.io/github/languages/top/derpierre65/github-pr-dashboard)](https://github.com/derpierre65/github-pr-dashboard)
 [![GitHub Repo Size](https://img.shields.io/github/repo-size/derpierre65/github-pr-dashboard)](https://github.com/derpierre65/github-pr-dashboard)

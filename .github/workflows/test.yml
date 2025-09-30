@@ -1,0 +1,76 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+permissions:
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: gh-pr-tests-${{ github.head_ref || github.event.pull_request.head.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vitest:
+    name: 🧪 Vitest
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎 Checkout
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: 👨🏻‍💻 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm i vitest-ctrf-json-reporter --no-save
+
+      - name: 🧪 Run Vitest
+        run: npm run test:unit:ci
+        env:
+          CI: true
+
+      - name: 🧹 Clean CTRF Report
+        run: sed -i 's|"test/|"|g' ./vitest-ctrf/report.json
+
+      - name: 📋 Create CTRF Test Summary
+        uses: ctrf-io/github-test-reporter@v1
+        if: always() && !cancelled()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          report-path: ./vitest-ctrf/*.json
+          summary: true
+          summary-report: true
+          suite-folded-report: true
+          status-check: true
+          status-check-name: 'Tests'
+
+      - name: 💬 Create CTRF Test Summary Comment
+        uses: ctrf-io/github-test-reporter@v1
+        if: always() && !cancelled()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          report-path: ./vitest-ctrf/*.json
+          pull-request-report: true
+          failed-folded-report: true
+          skipped-report: true
+          report-order: 'pull-request-report,failed-folded-report,skipped-report'
+          pull-request: true
+          update-comment: true
+          overwrite-comment: true
+          comment-tag: '${{ github.workflow }}-${{ github.job }}'

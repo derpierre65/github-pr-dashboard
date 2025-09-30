@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { Ref, ref } from 'vue';
 import GitHub from 'src/lib/github';
 
 const useDatabaseStore = defineStore('db', () => {
   const db = ref<IDBDatabase | null>(null);
-  const pullRequests = ref<GitHubPullRequest[]>([]);
+  const pullRequests = ref<GitHubPullRequest[]>([]) as Ref<GitHubPullRequest[]>;
   const settings = ref<{
     username: string;
     token: string;
