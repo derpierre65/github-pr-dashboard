@@ -424,7 +424,16 @@ function updateQuery(fieldName: string, value: any) {
       parts.push(`${key} = ${value}`);
     }
     else if (newExpressions[key].value.length) {
-      parts.push(`${key} IN (${newExpressions[key].value.map((value) => `"${value}"`).join(', ')})`);
+      parts.push(`${key} IN (${newExpressions[key].value.map((value) => {
+        if (typeof value === 'boolean') {
+          return value.toString();
+        }
+        else if (typeof value === 'number') {
+          return value.toString();
+        }
+
+        return `"${value}"`;
+      }).join(', ')})`);
     }
   }
   filter.value.query = parts.join(' AND ');
