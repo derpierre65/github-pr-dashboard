@@ -106,7 +106,14 @@
             />
           </div>
 
-          <div class="text-right q-mt-md">
+          <div class="flex q-mt-md">
+            <q-btn
+              label="Migrate to new filter system"
+              color="positive"
+              no-caps
+              @click="migrateFilter"
+            />
+            <q-space />
             <q-btn
               :loading="loading"
               label="Add Filter"
@@ -176,7 +183,23 @@ const {
 } = useDialogPluginComponent();
 
 const filterVariables = useFilterVariables();
+//#endregion
 
+//#region Data
+const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filter)) : {
+  id: uid(),
+  name: '',
+  showAsNotification: false,
+  notificationText: '',
+  filters: null,
+  query: '',
+});
+const queryLanguageMode = ref(false);
+const loading = ref(false);
+const showPullRequests = ref(false);
+//#endregion
+
+//#region Computed
 const possibleRepositories = computed(() => {
   return [ ...new Set(dbStore.pullRequests.map((pullRequest) => pullRequest.repo)), ];
 });
@@ -285,23 +308,7 @@ const simpleFilterOptions = computed(() => {
     },
   ];
 });
-//#endregion
 
-//#region Data
-const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filter)) : {
-  id: uid(),
-  name: '',
-  showAsNotification: false,
-  notificationText: '',
-  filters: null,
-  query: '',
-});
-const queryLanguageMode = ref(false);
-const loading = ref(false);
-const showPullRequests = ref(false);
-//#endregion
-
-//#region Computed
 const foundPullRequests = computed(() => {
   if (queryErrors.value) {
     return [];
@@ -392,6 +399,10 @@ function stripValue(node) {
 }
 
 function getFieldValue(fieldName: string) {
+  fieldName = {
+    repository: 'repo',
+  }[fieldName] || fieldName;
+
   if (!queryExpressions.value[fieldName]) {
     return {
       type: '=',
@@ -469,8 +480,6 @@ function submitQuery(event: KeyboardEvent) {
 
   event.preventDefault();
 
-  console.log(event.target.value);
-
   filter.value.query = event.target.value;
 }
 
@@ -481,6 +490,53 @@ function switchExperimentalFilter() {
   }
   else {
     filter.value.filters = null;
+  }
+}
+
+function migrateFilter() {
+  const parts = [];
+  const newNames = {
+    isDraft: 'draft',
+    user_reviewed: 'reviewedBy',
+    label: 'labels',
+    calculatedReviewStatus: 'reviewStatus',
+  };
+
+  for (const filterPart of filter.value.filters) {
+    const newFilterName = newNames[filterPart.type] || filterPart.type;
+    if (filterPart.compare === 'false' || filterPart.compare === 'true') {
+      parts.push(`${newFilterName} = ${filterPart.compare}`);
+    }
+    else if (filterPart.compare === 'includes') {
+      const values = filterPart.value ? [ filterPart.value, ] : filterPart.values;
+      if (values.length > 1) {
+        parts.push(`${newFilterName} IN (${filterPart.compare.map((value) => `"${value}"`).join(', ')})`);
+      }
+      else if (values.length === 1) {
+        parts.push(`${newFilterName} = "${values[0]}"`);
+      }
+    }
+    else if (filterPart.compare === 'excludes') {
+      const values = filterPart.value ? [ filterPart.value, ] : filterPart.values;
+      if (values.length > 1) {
+        parts.push(`${newFilterName} NOT IN (${filterPart.compare.map((value) => `"${value}"`).join(', ')})`);
+      }
+      else if (values.length === 1) {
+        parts.push(`${newFilterName} != "${values[0]}"`);
+      }
+    }
+    else if (filterPart.compare === 'includes all') {
+      const values = filterPart.value ? [ filterPart.value, ] : filterPart.values;
+      parts.push(...values.map((value) => `${newFilterName} IN ("${value}")`));
+    }
+  }
+
+  queryLanguageMode.value = true;
+  filter.value.query = parts.join(' AND ');
+  filter.value.filters = null;
+
+  if (canUseSimpleFilter.value) {
+    queryLanguageMode.value = false;
   }
 }
 //#endregion
