@@ -29,20 +29,37 @@
         </div>
       </div>
     </q-footer>
+
+    <q-dialog v-model="updateAvailable" position="bottom" no-focus seamless>
+      <q-card class="tw:w-96">
+        <q-card-section class="row items-center no-wrap">
+          <div>A new version is available.</div>
+          <q-space />
+          <q-btn label="Refresh" color="primary" @click="refreshApplication" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Loading } from 'quasar';
+import { Loading, useInterval } from 'quasar';
 import useDatabaseStore from 'stores/database';
+import axios from 'axios';
 
 defineOptions({
   name: 'MainLayout',
 });
 
-const hasAccess = ref(false);
 const dbStore = useDatabaseStore();
+
+const hasAccess = ref(false);
+const updateAvailable = ref(false);
+
+function refreshApplication() {
+  window.location.reload();
+}
 
 window.setTimeout(() => {
   if (hasAccess.value) {
@@ -92,4 +109,28 @@ window.navigator.storage.persist().then((granted) => {
     Loading.hide('opening');
   };
 });
+
+if (!import.meta.env.DEV) {
+  useInterval().registerInterval(() => {
+    if (updateAvailable.value) {
+      return;
+    }
+
+    axios
+      .get('/assets/version.json', {
+        baseURL: '',
+        params: {
+          t: Date.now(),
+        },
+      })
+      .then(({ data, }) => {
+        if (data.date.toString() !== import.meta.env.VITE_BUILD_TIMESTAMP) {
+          updateAvailable.value = true;
+        }
+      })
+      .catch(() => {
+        // do nothing
+      });
+  }, 30_000);
+}
 </script>
