@@ -15,6 +15,7 @@
           placeholder="derpierre65/github-pr-dashboard"
           hint="You need to add the owner and repository name, separated by a slash."
           stack-label
+          autofocus
           @keyup.enter="submit"
         />
       </q-card-section>

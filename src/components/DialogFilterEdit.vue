@@ -13,6 +13,7 @@
           label="Filter Name"
           hint="You can create groups of filters if you use a slash in the name."
           dense
+          autofocus
         />
 
         <div>
