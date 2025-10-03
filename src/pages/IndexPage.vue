@@ -232,7 +232,7 @@ const filterValues = computed(() => {
   const filterValues = Object.fromEntries(filters.value.map((filter) => {
     return [
       filter.id,
-      executeFilter(dbStore.pullRequests, filter).length,
+      executeFilter(dbStore.pullRequests, filter, filterVariables.value).length,
     ];
   }));
   console.timeEnd('Recalculate Filter Values');
