@@ -1,5 +1,9 @@
 @import 'tailwindcss' prefix(tw) source('../');
 
+* {
+  scrollbar-width: thin;
+}
+
 .link {
   @apply tw:text-blue-500 tw:hover:underline tw:hover:text-blue-400;
 }

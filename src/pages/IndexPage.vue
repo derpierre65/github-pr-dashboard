@@ -1,40 +1,8 @@
 <template>
-  <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto q-pt-md">
-    <div class="tw:flex">
-      <div class="tw:flex tw:gap-1 items-center">
-        <q-badge
-          v-for="(currentFilter, index) in currentFilters"
-          :key="currentFilter.id"
-        >
-          <span>{{ currentFilter.name }}</span>
-
-          <q-icon name="fas fa-times cursor-pointer" @click="currentFilters.splice(index, 1)" />
-        </q-badge>
-      </div>
-
-      <q-space />
-
-      <div class="tw:space-x-4">
-        <q-toggle
-          v-model="autoReload"
-          :disable="reloading"
-          label="Auto Reload every minute"
-          dense
-        />
-        <q-btn
-          :loading="reloading"
-          color="primary"
-          label="Reload"
-          icon="fas fa-refresh"
-          no-caps
-          @click="reload()"
-        />
-      </div>
-    </div>
-
+  <q-page class="tw:container tw:xl:max-w-[1800px] tw:mx-auto">
     <div class="tw:flex tw:gap-4 q-mt-md">
       <div class="tw:w-[400px] tw:shrink-0">
-        <div class="tw:sticky tw:top-2">
+        <div class="tw:sticky tw:top-4 tw:h-[calc(100vh-32px)] overflow-hidden tw:overflow-y-auto! tw:pr-2">
           <div class="tw:flex items-center q-mb-xs">
             <span class="text-grey-6">Filters</span>
             <q-space />
@@ -155,7 +123,39 @@
         </div>
       </div>
 
-      <div class="tw:flex-auto">
+      <div class="tw:flex-auto q-gutter-y-md">
+        <div class="tw:flex">
+          <div class="tw:flex tw:gap-1 items-center">
+            <q-badge
+              v-for="(currentFilter, index) in currentFilters"
+              :key="currentFilter.id"
+            >
+              <span>{{ currentFilter.name }}</span>
+
+              <q-icon name="fas fa-times cursor-pointer" @click="currentFilters.splice(index, 1)" />
+            </q-badge>
+          </div>
+
+          <q-space />
+
+          <div class="tw:space-x-4">
+            <q-toggle
+              v-model="autoReload"
+              :disable="reloading"
+              label="Auto Reload every minute"
+              dense
+            />
+            <q-btn
+              :loading="reloading"
+              color="primary"
+              label="Reload"
+              icon="fas fa-refresh"
+              no-caps
+              @click="reload()"
+            />
+          </div>
+        </div>
+
         <q-banner v-if="filteredPullRequests.length === 0" class="bg-positive">
           No pull requests found.
         </q-banner>
