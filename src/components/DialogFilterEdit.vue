@@ -506,6 +506,7 @@ function migrateFilter() {
     user_reviewed: 'reviewedBy',
     label: 'labels',
     calculatedReviewStatus: 'reviewStatus',
+    user_review: 'userReviewRequested',
   };
 
   for (const filterPart of filter.value.filters) {
