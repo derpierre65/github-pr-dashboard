@@ -33,6 +33,9 @@
               <q-item-section>
                 <span>{{ groupName }}</span>
               </q-item-section>
+              <q-item-section v-if="collapsed[groupName]" side>
+                <q-badge :label="groupedFilterValues[groupName]" color="grey-9" rounded />
+              </q-item-section>
             </q-item>
             <q-list v-if="!collapsed[groupName]" dense>
               <q-item
@@ -235,8 +238,18 @@ const groupedFilters = computed(() => {
   return Object.groupBy(filters.value, (filter) => {
     const split = filter.name.split('/');
 
-    return split.length >= 2 ? split[0] : 'Other';
+    return split.length >= 2 ? split[0] : 'No Group';
   });
+});
+
+const groupedFilterValues = computed(() => {
+  return Object.keys(groupedFilters.value).reduce((groupedFilterValues, groupName) => {
+    groupedFilterValues[groupName] = groupedFilters.value[groupName].reduce((count, filter) => {
+      return count + filterValues.value[filter.id];
+    }, 0);
+
+    return groupedFilterValues;
+  }, {});
 });
 
 const filterValues = computed(() => {
