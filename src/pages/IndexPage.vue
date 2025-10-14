@@ -18,12 +18,27 @@
           </div>
 
           <div v-for="(group, groupName) in groupedFilters" :key="groupName" class="q-mb-sm">
-            <span>{{ groupName }}</span>
-            <q-list dense>
+            <q-item
+              class="tw:flex items-center tw:gap-1 cursor-pointer tw:px-1!"
+              clickable
+              dense
+              @click="toggleCollapse(groupName)"
+            >
+              <q-item-section class="q-pr-none" side>
+                <q-icon
+                  :name="collapsed[groupName] ? 'fas fa-chevron-right' : 'fas fa-chevron-down'"
+                  size="xs"
+                />
+              </q-item-section>
+              <q-item-section>
+                <span>{{ groupName }}</span>
+              </q-item-section>
+            </q-item>
+            <q-list v-if="!collapsed[groupName]" dense>
               <q-item
                 v-for="filter in group"
                 :key="filter.id"
-                class="tw:px-0!"
+                class="tw:px-1!"
                 clickable
                 @click="applyFilter(filter, $event)"
               >
@@ -197,6 +212,7 @@ const currentFilters = ref<DBFilter[]>([]);
 const repositories = ref<DBRepository[]>([]);
 const autoReload = ref(true);
 const reloading = ref(false);
+const collapsed = ref(JSON.parse(window.localStorage.getItem('pr_dashboard_collapsed') || '{}'));
 
 const filterVariables = useFilterVariables();
 
@@ -433,6 +449,10 @@ function createReloadInterval() {
   }
 }
 
+function toggleCollapse(groupName: string) {
+  collapsed.value[groupName] = !collapsed.value[groupName];
+}
+
 async function updateSettings(field: string) {
   if (field === 'token') {
     Loading.show({
@@ -480,6 +500,12 @@ watch(filterValues, (after, before) => {
         .replace(/%oldValue%/g, before[filterId].toString()),
     });
   }
+}, {
+  deep: true,
+});
+
+watch(collapsed, () => {
+  window.localStorage.setItem('pr_dashboard_collapsed', JSON.stringify(collapsed.value));
 }, {
   deep: true,
 });
