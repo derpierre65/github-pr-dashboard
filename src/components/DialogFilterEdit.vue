@@ -21,12 +21,21 @@
             :model-value="filter.showAsNotification"
             label="Show Notification if filter count increases"
             dense
-            @update:model-value="requestNotificationPermission"
+            @update:model-value="requestNotificationPermission('showAsNotification', $event)"
+          />
+        </div>
+
+        <div>
+          <q-toggle
+            :model-value="filter.showAsNotificationDecrease"
+            label="Show Notification if filter count decreases"
+            dense
+            @update:model-value="requestNotificationPermission('showAsNotificationDecrease', $event)"
           />
         </div>
 
         <q-input
-          v-if="filter.showAsNotification"
+          v-if="filter.showAsNotification || filter.showAsNotificationDecrease"
           v-model="filter.notificationText"
           label="Custom Notification Text"
           dense
@@ -191,6 +200,7 @@ const filter = ref<DBFilter>(props.filter ? JSON.parse(JSON.stringify(props.filt
   id: uid(),
   name: '',
   showAsNotification: false,
+  showAsNotificationDecrease: false,
   notificationText: '',
   filters: null,
   query: '',
@@ -448,16 +458,16 @@ function addFilter() {
   });
 }
 
-function requestNotificationPermission(modelValue: boolean) {
+function requestNotificationPermission(field: 'showAsNotification' | 'showAsNotificationDecrease', modelValue: boolean) {
   if (modelValue) {
     return Notification.requestPermission((status) => {
       if (status === 'granted') {
-        filter.value.showAsNotification = true;
+        filter.value[field] = true;
       }
     });
   }
 
-  filter.value.showAsNotification = false;
+  filter.value[field] = false;
 }
 
 async function submit() {
@@ -550,6 +560,8 @@ function migrateFilter() {
 
 //#region Created
 filter.value.query ||= '';
+filter.value.showAsNotificationDecrease ??= false;
+
 if (filter.value.filters?.length === 0) {
   addFilter();
 }

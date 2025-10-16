@@ -11,6 +11,7 @@ type DBFilter = {
   id: string;
   name: string;
   showAsNotification?: boolean;
+  showAsNotificationDecrease?: boolean;
   notificationText?: string;
   filters: Array<{
     type: string;

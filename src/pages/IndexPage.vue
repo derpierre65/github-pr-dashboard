@@ -71,7 +71,7 @@
                   <q-item-label>{{ filterWithoutGroup(filter.name, groupName) }}</q-item-label>
                 </q-item-section>
                 <q-item-section class="tw:flex-row! tw:items-center!" side>
-                  <q-icon v-if="filter.showAsNotification" name="fas fa-bell" size="xs" color="green-9">
+                  <q-icon v-if="filter.showAsNotification || filter.showAsNotificationDecrease" name="fas fa-bell" size="xs" color="green-9">
                     <q-tooltip>Notifications enabled</q-tooltip>
                   </q-icon>
                   <q-badge :label="filterValues[filter.id]" color="grey-9" rounded />
@@ -495,12 +495,18 @@ watch(filterValues, (after, before) => {
       continue;
     }
 
-    if (before[filterId] >= after[filterId]) {
+    if (after[filterId] === before[filterId]) {
       continue;
     }
 
     const filter = filters.value.find((filter) => filter.id === filterId);
-    if (!filter.showAsNotification) {
+    if (!filter.showAsNotification && !filter.showAsNotificationDecrease) {
+      continue;
+    }
+
+    const numberDecreased = filter.showAsNotificationDecrease && after[filterId] < before[filterId];
+    const numberIncreased = filter.showAsNotification && after[filterId] > before[filterId];
+    if (!numberDecreased && !numberIncreased) {
       continue;
     }
 
