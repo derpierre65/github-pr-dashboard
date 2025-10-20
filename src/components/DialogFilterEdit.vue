@@ -34,20 +34,21 @@
           />
         </div>
 
-        <q-input
-          v-if="filter.showAsNotification || filter.showAsNotificationDecrease"
-          v-model="filter.notificationText"
-          label="Custom Notification Text"
-          dense
-        />
-        <div v-if="filter.showAsNotification">
-          You can use some variables in your notification text:
-          <ul class="tw:list-disc tw:pl-4">
-            <li>%filter% - Name of the filter.</li>
-            <li>%newValue% - New count of the filter.</li>
-            <li>%oldValue% - Old count of the filter.</li>
-          </ul>
-        </div>
+        <template v-if="filter.showAsNotification || filter.showAsNotificationDecrease">
+          <q-input
+            v-model="filter.notificationText"
+            label="Custom Notification Text"
+            dense
+          />
+          <div>
+            You can use some variables in your notification text:
+            <ul class="tw:list-disc tw:pl-4">
+              <li>%filter% - Name of the filter.</li>
+              <li>%newValue% - New count of the filter.</li>
+              <li>%oldValue% - Old count of the filter.</li>
+            </ul>
+          </div>
+        </template>
 
         <div>
           <q-toggle
