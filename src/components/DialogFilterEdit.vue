@@ -50,7 +50,7 @@
           </div>
         </template>
 
-        <div>
+        <div v-if="hasLegacyFilters">
           <q-toggle
             label="Use new experimental filter system"
             :model-value="filter.filters === null"
@@ -562,6 +562,8 @@ function migrateFilter() {
 //#region Created
 filter.value.query ||= '';
 filter.value.showAsNotificationDecrease ??= false;
+
+const hasLegacyFilters = filter.value.id ? filter.value.filters !== null : false;
 
 if (filter.value.filters?.length === 0) {
   addFilter();
