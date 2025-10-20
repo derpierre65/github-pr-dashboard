@@ -32,6 +32,7 @@
     "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.2",
     "dayjs": "^1.11.18",
+    "deepmerge": "^4.3.1",
     "jsep": "^1.4.0",
     "tailwindcss": "^4.1.13",
     "typescript": "~5.5.3",

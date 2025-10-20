@@ -26,6 +26,48 @@ function useFilterVariables() {
   }));
 }
 
+const DURATION_SECONDS: Record<string, number> = ((values) => {
+  return Object.fromEntries(Object.keys(values).flatMap((value) => {
+    return values[value].split(',').filter(Boolean).map((keyword: string) => {
+      return [
+        keyword.trim(),
+        Number(value),
+      ];
+    });
+  }));
+})({
+  [365 * 24 * 60 * 60]: 'years,year,y',
+  [30 * 24 * 60 * 60]: 'months,month,mo',
+  [7 * 24 * 60 * 60]: 'weeks,week,w',
+  [24 * 60 * 60]: 'days,day,d',
+  [60 * 60]: 'hours,hour,hrs,hr,h',
+  [60]: 'minutes,minute,mins,min,m',
+  [1]: 'seconds,second,secs,sec,s',
+});
+
+const durationRegex = new RegExp(`(?<!["'])([+-]?\\d+)\\s*(${Object.keys(DURATION_SECONDS)
+  .filter(Boolean)
+  .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) // escapen
+  .join('|')})(?!["'])`, 'g');
+
+function convertDurationToSeconds(input: string): string {
+  return input.replace(durationRegex, (_, number, unit) => {
+    return parseInt(number) * DURATION_SECONDS[unit];
+  });
+}
+
+function toMilliseconds(value: Date | number): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Date.now() + (value * 1000);
+  }
+
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  return null;
+}
+
 const filterAliases = {
   draft: 'isDraft',
   organization: 'org',
@@ -95,6 +137,32 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
           return !!(left || right);
         case '~':
           return (Array.isArray(left) ? left.map(String).join('') : String(left)).includes(String(rightValue));
+        case '>':
+        case '>=':
+        case '<':
+        case '<=': {
+          const leftMs = toMilliseconds(left);
+          const rightMs = toMilliseconds(right);
+
+          if (leftMs !== null && rightMs !== null) {
+            if (node.operator === '>') {
+              return leftMs > rightMs;
+            }
+            else if (node.operator === '>=') {
+              return leftMs >= rightMs;
+            }
+            else if (node.operator === '<') {
+              return leftMs < rightMs;
+            }
+            else if (node.operator === '<=') {
+              return leftMs <= rightMs;
+            }
+          }
+
+          console.log('Invalid left or right value?', left, right);
+
+          return false;
+        }
         case 'not in':
         case 'NOT IN': {
           const inRightValue = (Array.isArray(right) ? right : [ right, ]).map(toLowerCase);
@@ -138,7 +206,7 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
             type: 'Literal',
             value: expression.name,
             raw: `"${expression.name}"`,
-          } satisfies jsep.Literal;
+          } as jsep.Literal;
         }
 
         const resolvedValue = getFilterNodeValue(formattedExpression, context);
@@ -161,8 +229,34 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       if (fieldName === 'requestedReviewers') {
         return context.requestedReviewers.map((reviewer) => reviewer.login);
       }
+      if ([
+        'createdAt',
+        'updatedAt',
+        'lastEditedAt',
+      ].includes(fieldName)) {
+        return new Date(context[fieldName]);
+      }
 
       return context[fieldName];
+    }
+
+    case 'UnaryExpression': {
+      const uNode = node as jsep.UnaryExpression;
+      const val = getFilterNodeValue(uNode.argument as jsep.CoreExpression, context);
+      switch (uNode.operator) {
+        case '-': {
+          const num = Number(val);
+
+          return Number.isFinite(num) ? -num : NaN;
+        }
+        case '+': {
+          const num = Number(val);
+
+          return Number.isFinite(num) ? +num : NaN;
+        }
+      }
+
+      return val;
     }
 
     case 'Literal':
@@ -181,12 +275,15 @@ function getQueryExpressions(query: string, variables: Record<string, string> = 
     query = query.replace(new RegExp(key, 'g'), `"${value}"`);
   }
 
+  // Normalize human-readable durations (e.g., -7d, 2h, 15min) to seconds outside of quotes
+  query = convertDurationToSeconds(query);
+
   try {
     return jsep(query);
   }
   catch(error) {
     console.error(error);
-    return {};
+    return {} as unknown as jsep.CoreExpression;
   }
 }
 

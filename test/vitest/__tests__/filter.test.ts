@@ -1,24 +1,55 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { filterByQuery } from 'src/lib/filter';
+import deepmerge from 'deepmerge';
 
 describe('filterByQuery', () => {
-  const pullRequest1: GitHubPullRequest = {
-    id: 'PR_kwDOE0XT186rQkX1',
-    title: 'test(filter): my test pull request',
-    isDraft: false,
-    url: 'https://github.com/my-organization/my-repository/pull/1312',
-    number: 1312,
-    lastEditedAt: '2025-09-30T07:29:22Z',
-    merged: false,
-    state: 'OPEN',
-    totalCommentsCount: 3,
-    createdAt: '2025-09-30T07:27:08Z',
-    updatedAt: '2025-09-30T08:06:53Z',
-    statusCheckRollup: 'SUCCESS',
-    author: {
-      login: 'derpierre65',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-    },
+  function createUser(name: string) {
+    return {
+      login: name,
+      avatarUrl: 'https://avatars.githubusercontent.com/in/347564?v=4',
+    } as GitHubUser;
+  }
+
+  function createLabel(name: string) {
+    return {
+      id: 'LA_kwDOE0XT188AAAAB7OcciA',
+      color: '1d76db',
+      name,
+    } satisfies GitHubPullRequest['labels'][number];
+  }
+
+  function createPullRequest(data: Partial<GitHubPullRequest> = {}) {
+    const pullRequest = deepmerge({
+      id: 'PR_kwDOE0XT186rQkX1',
+      title: 'test(filter): my test pull request',
+      isDraft: false,
+      url: '',
+      number: 1312,
+      lastEditedAt: '2025-09-30T07:29:22Z',
+      merged: false,
+      state: 'OPEN',
+      totalCommentsCount: 3,
+      createdAt: '2025-09-30T07:27:08Z',
+      updatedAt: '2025-09-30T08:06:53Z',
+      statusCheckRollup: 'SUCCESS',
+      author: {
+        login: 'derpierre65',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
+      },
+      labels: [],
+      latestOpinionatedReviews: [],
+      org: 'my-organization',
+      repo: 'my-repository',
+      requestedReviewers: [],
+      fetchedAt: new Date('Tue Sep 30 2025 16:16:13 GMT+0100 (Irish Standard Time)'),
+      calculatedReviewStatus: 'approved',
+    }, data);
+
+    pullRequest.url = `https://github.com/${pullRequest.org}/${pullRequest.repo}/pull/${pullRequest.number}`;
+
+    return pullRequest;
+  }
+  const pullRequest1: GitHubPullRequest = createPullRequest({
     labels: [
       {
         id: 'LA_kwDOE0XT188AAAAB7OcciA',
@@ -26,138 +57,41 @@ describe('filterByQuery', () => {
         color: '1d76db',
       },
     ],
-    latestOpinionatedReviews: [
-      {
-        author: {
-          login: 'reviewed-by-me',
-          avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-        },
-        state: 'APPROVED',
-      },
-      {
-        author: {
-          login: 'coderabbitai',
-          avatarUrl: 'https://avatars.githubusercontent.com/in/347564?v=4',
-        },
-        state: 'APPROVED',
-      },
-    ],
-    org: 'my-organization',
-    repo: 'my-repository',
-    requestedReviewers: [
-      {
-        login: 'derpierre65',
-        avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-      },
-    ],
-    fetchedAt: new Date('Tue Sep 30 2025 16:16:13 GMT+0100 (Irish Standard Time)'),
-    calculatedReviewStatus: 'approved',
-  };
-  const pullRequest2: GitHubPullRequest = {
-    id: 'PR_kwDOE0XT186rQkX2',
+  });
+  const pullRequest2: GitHubPullRequest = createPullRequest({
     title: 'test(filter): my second test pull request',
-    isDraft: false,
-    url: 'https://github.com/my-organization2/my-repository2/pull/1312',
-    number: 1312,
-    lastEditedAt: '2025-09-30T07:29:22Z',
-    merged: false,
-    state: 'OPEN',
     totalCommentsCount: 33,
-    createdAt: '2025-09-30T07:27:08Z',
-    updatedAt: '2025-09-30T08:06:53Z',
-    statusCheckRollup: 'SUCCESS',
-    author: {
-      login: 'derpierre65',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-    },
     labels: [
-      {
-        id: 'LA_kwDOE0XT188AAAAB7OcciA',
-        name: 'my-label',
-        color: '1d76db',
-      },
-      {
-        id: 'LA_kwDOE0XT188AAAAB7OcciA',
-        name: 'my-second-label',
-        color: '1d76db',
-      },
+      createLabel('my-label'),
+      createLabel('my-second-label'),
     ],
     latestOpinionatedReviews: [
       {
-        author: {
-          login: 'reviewed-by-me',
-          avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-        },
-        state: 'APPROVED',
-      },
-      {
-        author: {
-          login: 'coderabbitai',
-          avatarUrl: 'https://avatars.githubusercontent.com/in/347564?v=4',
-        },
+        author: createUser('coderabbitai'),
         state: 'APPROVED',
       },
     ],
-    org: 'my-organization',
-    repo: 'my-repository',
-    requestedReviewers: [
-      {
-        login: 'derpierre65',
-        avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-      },
-    ],
-    fetchedAt: new Date('Tue Sep 30 2025 16:16:13 GMT+0100 (Irish Standard Time)'),
-    calculatedReviewStatus: 'approved',
-  };
-  const pullRequest3: GitHubPullRequest = {
-    id: 'PR_kwDOE0XT186rQkX2',
-    title: 'test(filter): my second test pull request',
+  });
+  const pullRequest3: GitHubPullRequest = createPullRequest({
     isDraft: true,
-    url: 'https://github.com/my-organization2/my-repository2/pull/1312',
-    number: 1312,
-    lastEditedAt: '2025-09-30T07:29:22Z',
-    merged: true,
-    state: 'OPEN',
     totalCommentsCount: 33,
-    createdAt: '2025-09-30T07:27:08Z',
-    updatedAt: '2025-09-30T08:06:53Z',
-    statusCheckRollup: 'SUCCESS',
-    author: {
-      login: 'coderabbitai',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-    },
+    author: createUser('coderabbitai'),
     labels: [
-      {
-        id: 'LA_kwDOE0XT188AAAAB7OcciA',
-        name: 'foo',
-        color: '1d76db',
-      },
-      {
-        id: 'LA_kwDOE0XT188AAAAB7OcciA',
-        name: 'bar',
-        color: '1d76db',
-      },
+      createLabel('foo'),
+      createLabel('bar'),
     ],
+    requestedReviewers: [ createUser('coderabbitai'), ],
     latestOpinionatedReviews: [
       {
-        author: {
-          login: 'reviewed-by-me',
-          avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-        },
+        author: createUser('reviewed-by-me'),
+        state: 'APPROVED',
+      },
+      {
+        author: createUser('coderabbitai'),
         state: 'APPROVED',
       },
     ],
-    org: 'my-organization',
-    repo: 'my-repository',
-    requestedReviewers: [
-      {
-        login: 'coderabbitai',
-        avatarUrl: 'https://avatars.githubusercontent.com/u/7004269?v=4',
-      },
-    ],
-    fetchedAt: new Date('Tue Sep 30 2025 16:16:13 GMT+0100 (Irish Standard Time)'),
-    calculatedReviewStatus: 'approved',
-  };
+  });
   const allTestPullRequests = [
     pullRequest1,
     pullRequest2,
@@ -316,5 +250,33 @@ describe('filterByQuery', () => {
     expect(filterByQuery(allTestPullRequests, 'comments = 33').length).eq(2);
     expect(filterByQuery(allTestPullRequests, 'reviewedBy = coderabbitai').length).eq(2);
     expect(filterByQuery(allTestPullRequests, 'userReviewRequested = coderabbitai').length).eq(1);
+  });
+
+  it('should find pul requests if using durations for date comparisons', () => {
+    const now = Date.now();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(now));
+
+    const pullRequests = [
+      // created now
+      createPullRequest({
+        createdAt: new Date().toISOString(),
+      }),
+      // 3 days old pull request
+      createPullRequest({
+        createdAt: new Date(now - (86_400 * 3 * 1_000)).toISOString(),
+      }),
+      // 3 days old pull request
+      createPullRequest({
+        createdAt: new Date(now - (86_400 * 7 * 1_000)).toISOString(),
+      }),
+    ];
+
+    expect(filterByQuery(pullRequests, 'createdAt >= -1d').length).eq(1);
+    expect(filterByQuery(pullRequests, 'createdAt >= -3d').length).eq(2);
+    expect(filterByQuery(pullRequests, 'createdAt >= -7d').length).eq(3);
+    expect(filterByQuery(pullRequests, 'createdAt >= -1w').length).eq(3);
+
+    vi.useRealTimers();
   });
 });
