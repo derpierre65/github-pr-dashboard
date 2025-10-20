@@ -81,11 +81,12 @@
               @click="queryLanguageMode = true"
             />
           </q-btn-group>
-          <div v-if="queryLanguageMode" class="tw:flex-auto">
+          <div v-if="queryLanguageMode" class="tw:flex-auto tw:flex tw:gap-2 tw:items-center">
             <q-input
               :model-value="filter.query"
               :error="queryErrors !== null"
               :error-message="queryErrors || undefined"
+              class="tw:flex-auto"
               label="Search Query"
               outlined
               dense
@@ -94,6 +95,11 @@
               @keydown.enter="submitQuery"
               @change="filter.query = $event"
             />
+            <router-link :to="{name: 'help-filter'}" target="_blank" rel="noopener noreferrer">
+              <q-icon name="fas fa-question-circle" @click="openHelp">
+                <q-tooltip>Help</q-tooltip>
+              </q-icon>
+            </router-link>
           </div>
           <template v-else>
             <FilterSelect
@@ -178,6 +184,7 @@ import FilterOption from 'components/FilterOption.vue';
 import PullRequestTable from 'components/PullRequestTable.vue';
 import { executeFilter, getQueryExpressions, useFilterVariables } from 'src/lib/filter';
 import FilterSelect from 'components/FilterSelect.vue';
+import { useRouter } from 'vue-router';
 
 //#region Composable & Prepare
 const props = withDefaults(defineProps<{
@@ -192,7 +199,7 @@ const {
   onDialogCancel,
   onDialogOK,
 } = useDialogPluginComponent();
-
+const router = useRouter();
 const filterVariables = useFilterVariables();
 //#endregion
 
@@ -555,6 +562,16 @@ function migrateFilter() {
 
   if (canUseSimpleFilter.value) {
     queryLanguageMode.value = false;
+  }
+}
+
+function openHelp(event: MouseEvent) {
+  const url = router.resolve({
+    name: 'help-filter',
+  }).href;
+  const popup = window.open(url, '_blank', 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
+  if (popup && !popup.closed) {
+    event.preventDefault();
   }
 }
 //#endregion

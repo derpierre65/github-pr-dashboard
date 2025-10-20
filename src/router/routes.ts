@@ -15,6 +15,11 @@ const routes: RouteRecordRaw[] = [
         path: 'setup',
         component: () => import('pages/SetupPage.vue'),
       },
+      {
+        name: 'help-filter',
+        path: 'help/filter',
+        component: () => import('pages/Help/HelpFilterPage.vue'),
+      },
     ],
   },
   {

@@ -7,3 +7,7 @@
 .link {
   @apply tw:text-blue-500 tw:hover:underline tw:hover:text-blue-400;
 }
+
+code {
+  @apply tw:bg-stone-800 tw:px-1
+}
