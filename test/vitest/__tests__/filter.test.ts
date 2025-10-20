@@ -266,7 +266,7 @@ describe('filterByQuery', () => {
       createPullRequest({
         createdAt: new Date(now - (86_400 * 3 * 1_000)).toISOString(),
       }),
-      // 3 days old pull request
+      // 7 days old pull request
       createPullRequest({
         createdAt: new Date(now - (86_400 * 7 * 1_000)).toISOString(),
       }),

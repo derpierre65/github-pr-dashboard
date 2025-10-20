@@ -241,22 +241,22 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
     }
 
     case 'UnaryExpression': {
-      const uNode = node as jsep.UnaryExpression;
-      const val = getFilterNodeValue(uNode.argument as jsep.CoreExpression, context);
-      switch (uNode.operator) {
+      const unaryNode = node as jsep.UnaryExpression;
+      const value = getFilterNodeValue(unaryNode.argument as jsep.CoreExpression, context);
+      switch (unaryNode.operator) {
         case '-': {
-          const num = Number(val);
+          const number = Number(value);
 
-          return Number.isFinite(num) ? -num : NaN;
+          return Number.isFinite(number) ? -number : NaN;
         }
         case '+': {
-          const num = Number(val);
+          const number = Number(value);
 
-          return Number.isFinite(num) ? +num : NaN;
+          return Number.isFinite(number) ? +number : NaN;
         }
       }
 
-      return val;
+      return value;
     }
 
     case 'Literal':
