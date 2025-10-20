@@ -252,7 +252,7 @@ describe('filterByQuery', () => {
     expect(filterByQuery(allTestPullRequests, 'userReviewRequested = coderabbitai').length).eq(1);
   });
 
-  it('should find pul requests if using durations for date comparisons', () => {
+  it('should find pull requests if using durations for date comparisons', () => {
     const now = Date.now();
     vi.useFakeTimers();
     vi.setSystemTime(new Date(now));
@@ -268,6 +268,7 @@ describe('filterByQuery', () => {
       }),
       // 7 days old pull request
       createPullRequest({
+        title: 'feat: allow 7d in filters',
         createdAt: new Date(now - (86_400 * 7 * 1_000)).toISOString(),
       }),
     ];
@@ -276,6 +277,9 @@ describe('filterByQuery', () => {
     expect(filterByQuery(pullRequests, 'createdAt >= -3d').length).eq(2);
     expect(filterByQuery(pullRequests, 'createdAt >= -7d').length).eq(3);
     expect(filterByQuery(pullRequests, 'createdAt >= -1w').length).eq(3);
+    expect(filterByQuery(pullRequests, 'createdAt <= -1w').length).eq(1);
+    expect(filterByQuery(pullRequests, 'createdAt < -1w').length).eq(0);
+    expect(filterByQuery(pullRequests, 'title ~ "7d"').length).eq(1);
 
     vi.useRealTimers();
   });
