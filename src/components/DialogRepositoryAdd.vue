@@ -238,6 +238,8 @@ GitHub
 
     suggestions.value = response.data.data.viewer.repositoriesContributedTo.nodes;
   })
-  .catch(noop);
+  .catch(() => {
+    suggestions.value = [];
+  });
 //#endregion
 </script>
