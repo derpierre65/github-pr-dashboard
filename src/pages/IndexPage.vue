@@ -323,11 +323,12 @@ function removeFilter(filter: DBFilter) {
 }
 
 function addRepository() {
-  Dialog
-    .create({
-      component: DialogRepositoryAdd,
-    })
-    .onOk(() => reload(false));
+  Dialog.create({
+    component: DialogRepositoryAdd,
+    componentProps: {
+      onRepositoryAdded: () => reload(false),
+    },
+  });
 }
 
 function removeRepository(repositoryName: string) {
