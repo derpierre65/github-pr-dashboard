@@ -39,22 +39,24 @@
             >
               <q-item-section class="q-pr-sm" side>
                 <q-btn
+                  :disable="suggestion.isArchived"
                   dense
                   color="primary"
                   icon="fas fa-plus"
                   @click="addSuggestionRepository(suggestion.nameWithOwner)"
                 >
-                  <q-tooltip>Add Repository</q-tooltip>
+                  <q-tooltip v-if="!suggestion.isArchived">
+                    Add Repository
+                  </q-tooltip>
                 </q-btn>
               </q-item-section>
               <q-item-section :class="{'tw:opacity-50': suggestion.isArchived}">
                 {{ suggestion.nameWithOwner }}
               </q-item-section>
               <q-item-section side>
-                <q-icon v-if="suggestion.isArchived" name="fas fa-box-archive" size="xs">
-                  <q-tooltip>This repository is archived.</q-tooltip>
-                </q-icon>
+                <q-icon v-if="suggestion.isArchived" name="fas fa-box-archive" size="xs" />
               </q-item-section>
+              <q-tooltip>This repository is archived.</q-tooltip>
             </q-item>
           </q-list>
         </div>
@@ -213,7 +215,7 @@ async function submit() {
 //#endregion
 
 //#region Created
-getRepositories().then((data) => repositories.value = data);
+getRepositories().then((data) => repositories.value = data).catch(noop);
 GitHub
   .graphql(`{
     viewer {
