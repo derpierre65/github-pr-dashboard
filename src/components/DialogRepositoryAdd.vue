@@ -92,7 +92,10 @@ const {
 //#region Data
 const repositoryName = ref('');
 const suggestionQuery = ref('');
-const suggestions = ref<string[] | null>(null);
+const suggestions = ref<Array<{
+  nameWithOwner: string;
+  isArchived: boolean;
+}> | null>(null);
 const repositories = ref<string[]>([]);
 const loading = ref(false);
 //#endregion
@@ -123,7 +126,7 @@ const filteredSuggestions = computed(() => {
 
 //#region Methods
 function getRepositories() {
-  return new Promise((resolve, reject) => {
+  return new Promise<string[]>((resolve, reject) => {
     const req = dbStore.db!.transaction([ 'repositories', ], 'readonly')
       .objectStore('repositories')
       .index('repository')
@@ -163,7 +166,8 @@ async function addRepository(repositoryName: string) {
         message: 'This repository is already added.',
         color: 'negative',
       });
-      return;
+
+      return false;
     }
 
     await dbStore.fetchPullRequestsByRepo(repositoryName);
