@@ -326,6 +326,9 @@ function addRepository() {
   Dialog
     .create({
       component: DialogRepositoryAdd,
+      componentProps: {
+        onRepositoryAdded: () => reload(false),
+      },
     })
     .onOk(() => reload(false));
 }
