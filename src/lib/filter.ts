@@ -18,6 +18,47 @@ jsep.addBinaryOp('==', 6);
 jsep.addBinaryOp('<>', 6);
 jsep.addBinaryOp('~', 6);
 
+const filterFunctions = {
+  getReviewDate(context: GitHubPullRequest, type: GitHubPullRequest['latestOpinionatedReviews'][number]['state'] = 'APPROVED') {
+    const latestApprovement = context.latestOpinionatedReviews.reduce((latestApprove, review) => {
+      if (review.state === type && review.createdAt > latestApprove) {
+        latestApprove = review.createdAt;
+      }
+
+      return latestApprove;
+    }, '');
+
+    return latestApprovement ? new Date(latestApprovement) : 0;
+  },
+  getReviewRequestedAt(context: GitHubPullRequest, type: 'latest' | 'newest' = 'newest') {
+    if (type !== 'latest' && type !== 'newest') {
+      throw new Error(`Invalid type ${type}`);
+    }
+
+    context._cacheRequestedReviewTimes ??= context.timelineItems.reduce((requestedReviews, item) => {
+      if (item.__typename === 'ReviewRequestedEvent') {
+        requestedReviews[item.requestedReviewer.login] = item.createdAt;
+      }
+      else if (item.__typename === 'ReviewDismissedEvent') {
+        delete requestedReviews[item.review.author.login];
+      }
+      else if (item.__typename === 'ReviewRequestRemovedEvent') {
+        delete requestedReviews[item.requestedReviewer.login];
+      }
+
+      return requestedReviews;
+    }, {} as Record<string, string>);
+
+    const requestedReviewTimes = context._cacheRequestedReviewTimes;
+
+    const sortedDates = Object.values(requestedReviewTimes).sort((reviewerA, reviewerB) => {
+      return reviewerA.localeCompare(reviewerB);
+    });
+
+    return new Date(sortedDates[type === 'newest' ? sortedDates.length - 1 : 0]);
+  },
+};
+
 function useFilterVariables() {
   const dbStore = useDatabaseStore();
 
@@ -193,7 +234,15 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
 
           return false;
         }
+
+        case '+':
+          return Number(left) + Number(right);
+
+        case '-':
+          return Number(left) - Number(right);
       }
+
+      throw new Error(`Unknown operator ${node.operator}`);
 
       return false;
     }
@@ -259,6 +308,22 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       return value;
     }
 
+    case 'CallExpression': {
+      if (typeof filterFunctions[node.callee.name] === 'undefined') {
+        throw new Error(`Unknown function ${node.callee.name}`);
+      }
+
+      try {
+        return filterFunctions[node.callee.name](
+          context,
+          ...node.arguments.map((argument) => getFilterNodeValue(argument, context)),
+        );
+      }
+      catch(error) {
+        throw new Error(`Function ${node.callee.name} failed to execute for ${context.org}/${context.repo}#${context.number}: ${error.message}`);
+      }
+    }
+
     case 'Literal':
       return node.value;
 
@@ -278,13 +343,7 @@ function getQueryExpressions(query: string, variables: Record<string, string> = 
   // Normalize human-readable durations (e.g., -7d, 2h, 15min) to seconds outside of quotes
   query = convertDurationToSeconds(query);
 
-  try {
-    return jsep(query);
-  }
-  catch(error) {
-    console.error(error);
-    return {} as unknown as jsep.CoreExpression;
-  }
+  return jsep(query);
 }
 
 function filterByQuery(pullRequests: GitHubPullRequest[], query: string, variables: Record<string, string> = {}) {
@@ -294,7 +353,6 @@ function filterByQuery(pullRequests: GitHubPullRequest[], query: string, variabl
     return getFilterNodeValue(ast, pullRequest);
   });
 }
-
 function includes(array: Array<string | number>, value: string | number) {
   return array.some((arrayValue) => {
     return arrayValue === value || arrayValue.toString().toLowerCase() === value.toString().toLowerCase();

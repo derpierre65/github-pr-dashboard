@@ -11,3 +11,18 @@
 code {
   @apply tw:bg-stone-800 tw:px-1
 }
+
+.inline-list {
+  @apply tw:flex tw:flex-wrap tw:list-none tw:items-center;
+
+  > li {
+    @apply tw:flex-auto tw:flex-grow-0;
+  }
+
+  &.comma-separated {
+    > li:not(:last-child)::after {
+      @apply tw:mr-1;
+      content: ',';
+    }
+  }
+}

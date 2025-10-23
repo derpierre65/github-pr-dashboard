@@ -222,7 +222,12 @@ const filterVariables = useFilterVariables();
 const filteredPullRequests = computed(() => {
   const filteredPullRequests = currentFilters.value.length ? [] : dbStore.pullRequests;
   for (const currentFilter of currentFilters.value) {
-    filteredPullRequests.push(...executeFilter(dbStore.pullRequests, currentFilter, filterVariables.value));
+    try {
+      filteredPullRequests.push(...executeFilter(dbStore.pullRequests, currentFilter, filterVariables.value));
+    }
+    catch(error) {
+      // the error will be logged in filterValues
+    }
   }
 
   return filteredPullRequests.sort((pullRequestA, pullRequestB) => {
@@ -245,7 +250,9 @@ const groupedFilters = computed(() => {
 const groupedFilterValues = computed(() => {
   return Object.keys(groupedFilters.value).reduce((groupedFilterValues, groupName) => {
     groupedFilterValues[groupName] = groupedFilters.value[groupName].reduce((count, filter) => {
-      return count + filterValues.value[filter.id];
+      const value = filterValues.value[filter.id];
+
+      return count + (typeof value === 'string' ? 0 : value);
     }, 0);
 
     return groupedFilterValues;
@@ -259,9 +266,17 @@ const filterValues = computed(() => {
 
   console.time('Recalculate Filter Values');
   const filterValues = Object.fromEntries(filters.value.map((filter) => {
+    let gitHubPullRequests = null;
+    try {
+      gitHubPullRequests = executeFilter(dbStore.pullRequests, filter, filterVariables.value);
+    }
+    catch(error) {
+      console.error(`Filter ${filter.name} failed: ${error.message}`);
+    }
+
     return [
       filter.id,
-      executeFilter(dbStore.pullRequests, filter, filterVariables.value).length,
+      gitHubPullRequests?.length ?? 'Error',
     ];
   }));
   console.timeEnd('Recalculate Filter Values');

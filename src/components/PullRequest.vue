@@ -29,7 +29,7 @@
           />
         </span>
       </div>
-      <small class="text-grey-6 tw:text-[12px]!">
+      <div class="text-grey-6 tw:text-[12px]!">
         <span class="q-pr-xs">#{{ item.number }} opened {{ date }} by <strong
           class="cursor-pointer"
           @click="$emit('clickAuthor', item.author.login)"
@@ -44,7 +44,20 @@
         <span v-else-if="item.calculatedReviewStatus === 'pending'">
           <q-icon name="fas fa-minus-circle" color="orange" /> Review required
         </span>
-      </small>
+        <span>•&nbsp;{{ reviewers.length ? 'Reviewers: ' : 'No Reviewers' }}</span>
+        <ul v-if="reviewers.length" class="inline-list comma-separated tw:inline-flex!">
+          <li
+            v-for="reviewer in reviewers"
+            :key="reviewer.name"
+            class="cursor-pointer q-gutter-x-xs"
+            @click="$emit('clickAuthor', reviewer.name)"
+          >
+            <q-icon v-bind="reviewerStateIcons[reviewer.state]" />
+            <span>{{ reviewer.name }}</span>
+            <q-tooltip>{{ translatedReviewerStates[reviewer.state] }}</q-tooltip>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div class="tw:shrink-0 tw:grid tw:grid-cols-2 tw:gap-2 tw:min-w-[120px]">
@@ -83,6 +96,23 @@ defineEmits<{
 //#endregion
 
 //#region Data
+const translatedReviewerStates = {
+  APPROVED: 'Approved',
+  PENDING: 'Pending',
+  CHANGES_REQUESTED: 'Changes requested',
+};
+const reviewerStateIcons = {
+  APPROVED: {
+    name: 'fas fa-check',
+  },
+  PENDING: {
+    name: 'fas fa-circle',
+    size: '8px',
+  },
+  CHANGES_REQUESTED: {
+    name: 'fas fa-times',
+  },
+};
 //#endregion
 
 //#region Computed
@@ -93,6 +123,26 @@ const linkProps = computed(() => {
     rel: 'noopener noreferrer',
   };
 });
+
+const reviewers = computed(() => {
+  return [
+    ...props.item.latestOpinionatedReviews.map((review) => {
+      return {
+        name: review.author.login,
+        state: review.state,
+        title: review.state === 'CHANGES_REQUESTED' ? 'Changes requested' : 'Approved',
+      };
+    }),
+    ...props.item.requestedReviewers.map((reviewer) => {
+      return {
+        name: reviewer.login,
+        state: 'PENDING',
+        title: 'Review required',
+      };
+    }),
+  ];
+});
+
 const date = computed(() => {
   return dayjs(props.item.createdAt).fromNow();
 });

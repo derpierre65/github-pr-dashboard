@@ -83,9 +83,8 @@ const useDatabaseStore = defineStore('db', () => {
             fetchedAt: new Date(),
             latestOpinionatedReviews: latestOpinionatedReviews,
             calculatedReviewStatus: isApproved ? 'approved' : fallbackStatus,
-            labels: node.labels.nodes.map((label) => {
-              return label;
-            }),
+            timelineItems: node.timelineItems.nodes,
+            labels: node.labels.nodes,
           };
         });
 
