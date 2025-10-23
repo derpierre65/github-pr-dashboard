@@ -96,8 +96,13 @@
               @change="filter.query = $event"
             >
               <template #after>
-                <router-link :to="{name: 'help-filter'}" target="_blank" rel="noopener noreferrer">
-                  <q-icon name="fas fa-question-circle" size="xs" @click="openHelp">
+                <router-link
+                  :to="{name: 'help-filter'}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  @click="openHelp"
+                >
+                  <q-icon name="fas fa-question-circle" size="xs">
                     <q-tooltip>Help</q-tooltip>
                   </q-icon>
                 </router-link>
