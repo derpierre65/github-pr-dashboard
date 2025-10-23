@@ -149,19 +149,20 @@
           </div>
         </template>
 
-        <div class="flex tw:gap-2">
-          <q-banner class="bg-blue-10 tw:flex-auto" dense>
-            Found <strong>{{ foundPullRequests.length }}</strong> pull requests for this filter.
-          </q-banner>
-          <q-btn
-            :label="showPullRequests ? 'Hide Pull Requests' : 'Show Pull Requests'"
-            :color="showPullRequests ? 'grey-8' : 'green'"
-            no-caps
-            @click="showPullRequests = !showPullRequests"
-          />
-        </div>
-        <template v-if="foundPullRequests.length">
-          <q-slide-transition>
+        <template v-if="Array.isArray(foundPullRequests)">
+          <div class="flex tw:gap-2">
+            <q-banner class="bg-blue-10 tw:flex-auto" dense>
+              Found <strong>{{ foundPullRequests.length }}</strong> pull requests for this filter.
+            </q-banner>
+            <q-btn
+              :label="showPullRequests ? 'Hide Pull Requests' : 'Show Pull Requests'"
+              :color="showPullRequests ? 'grey-8' : 'green'"
+              :disable="foundPullRequests.length === 0"
+              no-caps
+              @click="showPullRequests = !showPullRequests"
+            />
+          </div>
+          <q-slide-transition v-if="foundPullRequests.length">
             <PullRequestTable
               v-show="showPullRequests"
               :items="foundPullRequests"
@@ -337,15 +338,11 @@ const simpleFilterOptions = computed(() => {
 });
 
 const foundPullRequests = computed(() => {
-  if (queryErrors.value) {
-    return [];
-  }
-
   try {
     return executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
   }
   catch(error) {
-    return [];
+    return error;
   }
 });
 
@@ -368,8 +365,9 @@ const queryErrors = computed(() => {
   }
 
   try {
-    getQueryExpressions(filter.value.query, filterVariables.value);
-    executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
+    if (!Array.isArray(foundPullRequests.value)) {
+      throw foundPullRequests.value;
+    }
 
     return null;
   }
