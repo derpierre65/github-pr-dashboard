@@ -236,10 +236,10 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
         }
 
         case '+':
-          return left - right;
+          return Number(left) + Number(right);
 
         case '-':
-          return left - right;
+          return Number(left) - Number(right);
       }
 
       console.debug(`Unknown operator ${node.operator}`);
