@@ -29,7 +29,7 @@
           />
         </span>
       </div>
-      <small class="text-grey-6 tw:text-[12px]!">
+      <div class="text-grey-6 tw:text-[12px]!">
         <span class="q-pr-xs">#{{ item.number }} opened {{ date }} by <strong
           class="cursor-pointer"
           @click="$emit('clickAuthor', item.author.login)"
@@ -44,7 +44,31 @@
         <span v-else-if="item.calculatedReviewStatus === 'pending'">
           <q-icon name="fas fa-minus-circle" color="orange" /> Review required
         </span>
-      </small>
+        <span>•&nbsp;Reviewers: </span>
+        <ul class="inline-list comma-separated tw:inline-flex!">
+          <li
+            v-for="reviewer in reviewers"
+            class="cursor-pointer q-gutter-x-xs"
+            @click="$emit('clickAuthor', reviewer.name)"
+          >
+            <q-icon
+              v-if="reviewer.state === 'APPROVED'"
+              name="fas fa-check"
+            />
+            <q-icon
+              v-else-if="reviewer.state === 'PENDING'"
+              name="fas fa-circle"
+              size="8px"
+            />
+            <q-icon
+              v-else-if="reviewer.state === 'CHANGES_REQUESTED'"
+              name="fas fa-times"
+            />
+            <span>{{ reviewer.name }}</span>
+            <q-tooltip>{{ reviewer.state }}</q-tooltip>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div class="tw:shrink-0 tw:grid tw:grid-cols-2 tw:gap-2 tw:min-w-[120px]">
@@ -93,6 +117,26 @@ const linkProps = computed(() => {
     rel: 'noopener noreferrer',
   };
 });
+
+const reviewers = computed(() => {
+  return [
+    ...props.item.latestOpinionatedReviews.map((review) => {
+      return {
+        name: review.author.login,
+        state: review.state,
+        title: review.state === 'CHANGES_REQUESTED' ? 'Changes requested' : 'Approved',
+      };
+    }),
+    ...props.item.requestedReviewers.map((reviewer) => {
+      return {
+        name: reviewer.login,
+        state: 'PENDING',
+        title: 'Review required',
+      };
+    }),
+  ];
+});
+
 const date = computed(() => {
   return dayjs(props.item.createdAt).fromNow();
 });
