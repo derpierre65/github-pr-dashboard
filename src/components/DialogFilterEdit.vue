@@ -81,7 +81,7 @@
               @click="queryLanguageMode = true"
             />
           </q-btn-group>
-          <div v-if="queryLanguageMode" class="tw:flex-auto tw:flex tw:gap-2 tw:items-center!">
+          <div v-if="queryLanguageMode" class="tw:flex-auto tw:flex tw:gap-2 tw:items-center">
             <q-input
               :model-value="filter.query"
               :error="queryErrors !== null"
@@ -364,16 +364,11 @@ const queryErrors = computed(() => {
     return null;
   }
 
-  try {
-    if (!Array.isArray(foundPullRequests.value)) {
-      throw foundPullRequests.value;
-    }
-
+  if (Array.isArray(foundPullRequests.value)) {
     return null;
   }
-  catch(error) {
-    return error.message;
-  }
+
+  return foundPullRequests.value.message;
 });
 //#endregion
 

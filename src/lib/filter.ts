@@ -242,7 +242,7 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
           return Number(left) - Number(right);
       }
 
-      console.debug(`Unknown operator ${node.operator}`);
+      throw new Error(`Unknown operator ${node.operator}`);
 
       return false;
     }
@@ -310,7 +310,7 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
 
     case 'CallExpression': {
       if (typeof filterFunctions[node.callee.name] === 'undefined') {
-        throw new Error(`Invalid function ${node.callee.name}`);
+        throw new Error(`Unknown function ${node.callee.name}`);
       }
 
       try {
