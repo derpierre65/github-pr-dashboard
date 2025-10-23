@@ -266,7 +266,7 @@ const filterValues = computed(() => {
 
   console.time('Recalculate Filter Values');
   const filterValues = Object.fromEntries(filters.value.map((filter) => {
-    let gitHubPullRequests = [];
+    let gitHubPullRequests = null;
     try {
       gitHubPullRequests = executeFilter(dbStore.pullRequests, filter, filterVariables.value);
     }
@@ -276,7 +276,7 @@ const filterValues = computed(() => {
 
     return [
       filter.id,
-      gitHubPullRequests.length || 'Error',
+      gitHubPullRequests?.length ?? 'Error',
     ];
   }));
   console.timeEnd('Recalculate Filter Values');
