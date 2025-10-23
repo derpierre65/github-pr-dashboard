@@ -44,28 +44,17 @@
         <span v-else-if="item.calculatedReviewStatus === 'pending'">
           <q-icon name="fas fa-minus-circle" color="orange" /> Review required
         </span>
-        <span>•&nbsp;Reviewers: </span>
-        <ul class="inline-list comma-separated tw:inline-flex!">
+        <span>•&nbsp;{{ reviewers.length ? 'Reviewers: ' : 'No Reviewers' }}</span>
+        <ul v-if="reviewers.length" class="inline-list comma-separated tw:inline-flex!">
           <li
             v-for="reviewer in reviewers"
+            :key="reviewer.name"
             class="cursor-pointer q-gutter-x-xs"
             @click="$emit('clickAuthor', reviewer.name)"
           >
-            <q-icon
-              v-if="reviewer.state === 'APPROVED'"
-              name="fas fa-check"
-            />
-            <q-icon
-              v-else-if="reviewer.state === 'PENDING'"
-              name="fas fa-circle"
-              size="8px"
-            />
-            <q-icon
-              v-else-if="reviewer.state === 'CHANGES_REQUESTED'"
-              name="fas fa-times"
-            />
+            <q-icon v-bind="reviewerStateIcons[reviewer.state]" />
             <span>{{ reviewer.name }}</span>
-            <q-tooltip>{{ reviewer.state }}</q-tooltip>
+            <q-tooltip>{{ translatedReviewerStates[reviewer.state] }}</q-tooltip>
           </li>
         </ul>
       </div>
@@ -107,6 +96,23 @@ defineEmits<{
 //#endregion
 
 //#region Data
+const translatedReviewerStates = {
+  APPROVED: 'Approved',
+  PENDING: 'Pending',
+  CHANGES_REQUESTED: 'Changes requested',
+};
+const reviewerStateIcons = {
+  APPROVED: {
+    name: 'fas fa-check',
+  },
+  PENDING: {
+    name: 'fas fa-circle',
+    size: '8px',
+  },
+  CHANGES_REQUESTED: {
+    name: 'fas fa-times',
+  },
+};
 //#endregion
 
 //#region Computed
