@@ -45,6 +45,24 @@ type GitHubPullRequest = {
   latestOpinionatedReviews: Array<{
     author: GitHubUser;
     state: 'CHANGES_REQUESTED' | 'APPROVED';
+    createdAt: string;
+  }>;
+  timelineItems: Array<{
+    __typename: 'ReviewRequestedEvent' | 'ReviewRequestRemovedEvent';
+    requestedReviewer: {
+      __typename: 'User' | 'Bot';
+      login: string;
+    };
+    createdAt: string;
+  } | {
+    __typename: 'ReviewDismissedEvent';
+    review: {
+      author: {
+        __typename: 'User' | 'Bot';
+        login: string;
+      };
+    };
+    createdAt: string;
   }>;
   createdAt: string;
   lastEditedAt: string;
@@ -52,4 +70,5 @@ type GitHubPullRequest = {
   calculatedReviewStatus: 'approved' | 'changes_requested' | 'pending';
   updatedAt: string;
   fetchedAt: Date;
+  _cacheRequestedReviewTimes?: Record<string, string>;
 };

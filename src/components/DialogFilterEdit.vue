@@ -81,7 +81,7 @@
               @click="queryLanguageMode = true"
             />
           </q-btn-group>
-          <div v-if="queryLanguageMode" class="tw:flex-auto tw:flex tw:gap-2 tw:items-center">
+          <div v-if="queryLanguageMode" class="tw:flex-auto tw:flex tw:gap-2 tw:items-center!">
             <q-input
               :model-value="filter.query"
               :error="queryErrors !== null"
@@ -94,12 +94,15 @@
               hide-bottom-space
               @keydown.enter="submitQuery"
               @change="filter.query = $event"
-            />
-            <router-link :to="{name: 'help-filter'}" target="_blank" rel="noopener noreferrer">
-              <q-icon name="fas fa-question-circle" @click="openHelp">
-                <q-tooltip>Help</q-tooltip>
-              </q-icon>
-            </router-link>
+            >
+              <template #after>
+                <router-link :to="{name: 'help-filter'}" target="_blank" rel="noopener noreferrer">
+                  <q-icon name="fas fa-question-circle" size="xs" @click="openHelp">
+                    <q-tooltip>Help</q-tooltip>
+                  </q-icon>
+                </router-link>
+              </template>
+            </q-input>
           </div>
           <template v-else>
             <FilterSelect
@@ -333,7 +336,12 @@ const foundPullRequests = computed(() => {
     return [];
   }
 
-  return executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
+  try {
+    return executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
+  }
+  catch(error) {
+    return [];
+  }
 });
 
 const queryExpressions = computed(() => {
@@ -356,6 +364,8 @@ const queryErrors = computed(() => {
 
   try {
     getQueryExpressions(filter.value.query, filterVariables.value);
+    executeFilter(dbStore.pullRequests, filter.value, filterVariables.value);
+
     return null;
   }
   catch(error) {

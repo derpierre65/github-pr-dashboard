@@ -108,6 +108,30 @@ export default class GitHub {
                   avatarUrl,
                 }
                 state
+                createdAt
+              }
+            }
+            timelineItems(first: 100, itemTypes: [REVIEW_REQUESTED_EVENT, REVIEW_DISMISSED_EVENT, REVIEW_REQUEST_REMOVED_EVENT]) {
+              nodes {
+                __typename
+                ... on ReviewRequestedEvent {
+                    requestedReviewer {
+                      ... on User {__typename, login}
+                    }
+                    createdAt
+                }
+                ... on ReviewDismissedEvent {
+                    review {
+                      author { __typename, login }
+                    }
+                    createdAt
+                }
+                ... on ReviewRequestRemovedEvent {
+                    requestedReviewer {
+                      ... on User {__typename, login}
+                    }
+                    createdAt
+                }
               }
             }
             reviewRequests(first: 100) {
@@ -123,6 +147,13 @@ export default class GitHub {
             }
           }
         }
+      }
+      rateLimit {
+        cost
+        limit
+        remaining
+        used
+        resetAt
       }
     }`);
   }
