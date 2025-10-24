@@ -186,7 +186,13 @@
 </template>
 
 <script setup lang="ts">
-import { Notify, uid, useDialogPluginComponent } from 'quasar';
+import {
+  Dialog,
+  Notify,
+  uid,
+  useDialogPluginComponent,
+  useInterval,
+} from 'quasar';
 import { computed, ref } from 'vue';
 import useDatabaseStore from 'stores/database';
 import FilterOption from 'components/FilterOption.vue';
@@ -210,6 +216,7 @@ const {
 } = useDialogPluginComponent();
 const router = useRouter();
 const filterVariables = useFilterVariables();
+const dialogCheckInterval = useInterval();
 //#endregion
 
 //#region Data
@@ -476,9 +483,37 @@ function addFilter() {
 
 function requestNotificationPermission(field: 'showAsNotification' | 'showAsNotificationDecrease', modelValue: boolean) {
   if (modelValue) {
-    return Notification.requestPermission((status) => {
-      if (status === 'granted') {
+    function enableNotification() {
+      if (Notification.permission === 'granted') {
         filter.value[field] = true;
+        dialog?.hide();
+      }
+    }
+
+    let dialog;
+    if (Notification.permission !== 'granted') {
+      dialog = Dialog
+        .create({
+          message: 'Please allow notifications in your browser to use this feature.',
+        })
+        .onDismiss(() => {
+          dialogCheckInterval.removeInterval();
+        });
+      dialogCheckInterval.registerInterval(enableNotification, 150);
+    }
+    else {
+      enableNotification();
+    }
+
+    return Notification.requestPermission((status) => {
+      if (status !== 'granted') {
+        dialog?.hide();
+      }
+      if (status === 'denied') {
+        Notify.create({
+          message: 'You have denied notifications. Please enable them in your browser settings.',
+          color: 'negative',
+        });
       }
     });
   }
