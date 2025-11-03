@@ -113,7 +113,7 @@ databaseRequest.onerror = () => {
   Loading.hide('opening');
 };
 
-window.navigator.storage.persist();
+window.navigator.storage?.persist();
 
 if (!import.meta.env.DEV) {
   useInterval().registerInterval(() => {
