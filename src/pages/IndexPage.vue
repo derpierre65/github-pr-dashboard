@@ -156,13 +156,20 @@
 
           <q-space />
 
-          <div class="tw:space-x-4">
+          <div class="tw:space-x-2!">
             <q-toggle
               v-model="autoReload"
               :disable="reloading"
               label="Auto Reload every minute"
               dense
             />
+            <q-btn
+              color="purple"
+              icon="fas fa-file-csv"
+              @click="exportAsCSV"
+            >
+              <q-tooltip>Export as CSV</q-tooltip>
+            </q-btn>
             <q-btn
               :loading="reloading"
               color="primary"
@@ -200,6 +207,7 @@ import GitHub, { GitHubResponse } from 'src/lib/github';
 import { executeFilter, useFilterVariables } from 'src/lib/filter';
 import PullRequestTable from 'components/PullRequestTable.vue';
 import InputPassword from 'components/InputPassword.vue';
+import { getPullRequestReviewers } from 'src/lib/pull-request';
 
 dayjs.extend(relativeTime);
 
@@ -503,6 +511,66 @@ async function updateSettings(field: string) {
   }
 
   window.localStorage.setItem('pr_dashboard_settings', JSON.stringify(dbStore.settings));
+}
+
+function exportAsCSV() {
+  const rows: Array<Array<string | number>> = [
+    [
+      'Repository',
+      'Id',
+      'Creator',
+      'Title',
+      'Reviewers',
+      'Created At',
+      'Last Edited At',
+    ],
+  ];
+
+  for (const pullRequest of filteredPullRequests.value.slice().sort((pullRequestA, pullRequestB) => {
+    // repo ASC
+    if (pullRequestA.repo !== pullRequestB.repo) {
+      return pullRequestA.repo.localeCompare(pullRequestB.repo);
+    }
+
+    // number DESC
+    return pullRequestB.number - pullRequestA.number;
+  })) {
+    rows.push([
+      pullRequest.org + '/' + pullRequest.repo,
+      pullRequest.number,
+      pullRequest.author.login,
+      pullRequest.title,
+      getPullRequestReviewers(pullRequest).map((reviewer) => {
+        return reviewer.name + ` (${reviewer.title})`;
+      }).join(', '),
+      pullRequest.createdAt,
+      pullRequest.lastEditedAt,
+    ]);
+  }
+
+  const csvContent = rows.map((row) => {
+    return row.map((column) => {
+      const string = String(column ?? '');
+      const escaped = string.replace(/"/g, '""');
+
+      return /[",\r\n]/.test(string) ? `"${escaped}"` : escaped;
+    }).join(',');
+  }).join('\n');
+
+  const blob = new Blob([ csvContent, ], {
+    type: 'text/csv;charset=utf-8;',
+  });
+
+  const filterNames = currentFilters.value.map((filter) => filter.name).join('-').slice(0, 80);
+  const url = URL.createObjectURL(blob);
+  const downloadTag = document.createElement('a');
+
+  downloadTag.href = url;
+  downloadTag.download = `pull-requests${filterNames ? `-${filterNames}` : ''}.csv`;
+  document.body.appendChild(downloadTag);
+  downloadTag.click();
+  downloadTag.remove();
+  URL.revokeObjectURL(url);
 }
 
 watch(filterValues, (after, before) => {

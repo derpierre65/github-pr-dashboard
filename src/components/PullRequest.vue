@@ -83,6 +83,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import dayjs from 'dayjs';
+import { getPullRequestReviewers } from 'src/lib/pull-request';
 
 //#region Composable & Prepare
 const props = defineProps<{
@@ -125,22 +126,7 @@ const linkProps = computed(() => {
 });
 
 const reviewers = computed(() => {
-  return [
-    ...props.item.latestOpinionatedReviews.map((review) => {
-      return {
-        name: review.author.login,
-        state: review.state,
-        title: review.state === 'CHANGES_REQUESTED' ? 'Changes requested' : 'Approved',
-      };
-    }),
-    ...props.item.requestedReviewers.map((reviewer) => {
-      return {
-        name: reviewer.login,
-        state: 'PENDING',
-        title: 'Review required',
-      };
-    }),
-  ];
+  return getPullRequestReviewers(props.item);
 });
 
 const date = computed(() => {
