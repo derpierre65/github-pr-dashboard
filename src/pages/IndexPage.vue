@@ -230,7 +230,7 @@ const filteredPullRequests = computed(() => {
     }
   }
 
-  return filteredPullRequests.sort((pullRequestA, pullRequestB) => {
+  return [ ...new Set(filteredPullRequests), ].sort((pullRequestA, pullRequestB) => {
     return new Date(pullRequestB.createdAt).getTime() - new Date(pullRequestA.createdAt).getTime();
   });
 });
