@@ -79,6 +79,7 @@ const useDatabaseStore = defineStore('db', () => {
             org,
             repo,
             requestedReviewers,
+            nameWithOwner: node.baseRepository.nameWithOwner,
             statusCheckRollup: node.statusCheckRollup?.state || 'UNKNOWN',
             fetchedAt: new Date(),
             latestOpinionatedReviews: latestOpinionatedReviews,

@@ -99,7 +99,7 @@
               :key="repository.repository"
               class="tw:px-0!"
               clickable
-              @click="applyRepositoryFilter(repository.repository)"
+              @click="applyRepositoryFilter(repository.repository, $event)"
             >
               <q-item-section class="q-pr-xs" side>
                 <q-btn
@@ -188,7 +188,7 @@
           v-else
           :items="filteredPullRequests"
           @click-author="addTempFilter('author', $event)"
-          @click-label="addTempFilter('label', $event)"
+          @click-label="addTempFilter('labels', $event)"
         />
       </div>
     </div>
@@ -228,12 +228,12 @@ const collapsed = ref(JSON.parse(window.localStorage.getItem('pr_dashboard_colla
 const filterVariables = useFilterVariables();
 
 const filteredPullRequests = computed(() => {
-  const filteredPullRequests = currentFilters.value.length ? [] : dbStore.pullRequests;
+  let filteredPullRequests = dbStore.pullRequests;
   for (const currentFilter of currentFilters.value) {
     try {
-      filteredPullRequests.push(...executeFilter(dbStore.pullRequests, currentFilter, filterVariables.value));
+      filteredPullRequests = executeFilter(filteredPullRequests, currentFilter, filterVariables.value);
     }
-    catch(error) {
+    catch {
       // the error will be logged in filterValues
     }
   }
@@ -429,50 +429,65 @@ async function reload(refetch = true) {
   reloading.value = false;
 }
 
-function addTempFilter(type: string, value: string) {
-  applyFilter({
-    id: `temp_filter_${type}_${value}`,
-    name: `${type} ${value}`,
-    filters: [
-      {
-        type: type,
-        compare: 'includes',
-        values: [ value, ],
-      },
-    ],
-  });
+function addTempFilter(type: string, [ newValue, event, ]: [string, MouseEvent]) {
+  const tempFilterId = `temp_filter_${type}`;
+  const existingFilterIndex = currentFilters.value.findIndex((filter) => filter.id === tempFilterId);
+  const existingFilter = currentFilters.value[existingFilterIndex];
+  let values = [ newValue, ];
+
+  if (existingFilter) {
+    const index = existingFilter.__values.indexOf(newValue);
+    if (event?.ctrlKey) {
+      if (index >= 0) {
+        existingFilter.__values.splice(index, 1);
+      }
+      else if (event?.ctrlKey) {
+        existingFilter.__values.push(newValue);
+      }
+    }
+    else {
+      existingFilter.__values = [ newValue, ];
+    }
+
+    values = existingFilter.__values;
+  }
+
+  const filterName = {
+    nameWithOwner: 'repository',
+  }[type] ?? type;
+  const filter = {
+    __values: values,
+    id: tempFilterId,
+    name: `${filterName} ${values.join(', ')}`,
+    query: `${type} IN (${values.map((value) => `"${value}"`).join(', ')})`,
+    filters: null,
+  };
+
+  if (existingFilter && values.length) {
+    currentFilters.value[existingFilterIndex] = filter;
+    return;
+  }
+
+  applyFilter(values.length ? filter : null, event ?? null);
 }
 
-function applyRepositoryFilter(repository: string) {
-  const [ org, repo, ] = repository.split('/');
-  applyFilter({
-    id: `custom_repository_${repository}`,
-    name: `Repository ${repository}`,
-    filters: [
-      {
-        type: 'org',
-        compare: 'includes',
-        values: [ org, ],
-      },
-      {
-        type: 'repo',
-        compare: 'includes',
-        values: [ repo, ],
-      },
-    ],
-  });
+function applyRepositoryFilter(repository: string, event: MouseEvent) {
+  addTempFilter('nameWithOwner', [
+    repository,
+    event,
+  ]);
 }
 
 function applyFilter(filter: DBFilter, event: Event | null = null) {
-  if (!event || !(event instanceof MouseEvent) || !event.ctrlKey) {
+  if (!event || !(event instanceof MouseEvent) || !event.ctrlKey || !filter) {
     currentFilters.value = [];
   }
 
-  const isActiveFilter = currentFilters.value.findIndex((currentFilter) => currentFilter.id === filter.id);
+  const isActiveFilter = currentFilters.value.findIndex((currentFilter) => currentFilter.id === filter?.id);
   if (isActiveFilter >= 0) {
     currentFilters.value.splice(isActiveFilter, 1);
   }
-  else {
+  else if (filter) {
     currentFilters.value.push(filter);
   }
 }

@@ -87,6 +87,9 @@ export default class GitHub {
             totalCommentsCount,
             createdAt,
             updatedAt,
+            baseRepository {
+              nameWithOwner
+            }
             statusCheckRollup {
               state
             }

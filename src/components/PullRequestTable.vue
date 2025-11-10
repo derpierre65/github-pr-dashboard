@@ -18,7 +18,7 @@ defineProps<{
 }>();
 
 defineEmits<{
-  clickLabel: [value: string];
-  clickAuthor: [value: string];
+  clickLabel: [[value: string, event: MouseEvent]];
+  clickAuthor: [[value: string, event: MouseEvent]];
 }>();
 </script>

@@ -29,6 +29,7 @@ type GitHubPullRequest = {
   url: string;
   org: string;
   repo: string;
+  nameWithOwner: string;
   labels: Array<{
     id: string;
     name: string;

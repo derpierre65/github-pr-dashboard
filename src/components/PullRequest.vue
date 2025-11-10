@@ -25,14 +25,14 @@
             :style="hexToRgbHsl(label.color)"
             :label="label.name"
             rounded
-            @click="$emit('clickLabel', label.name)"
+            @click="$emit('clickLabel', [label.name, $event])"
           />
         </span>
       </div>
       <div class="text-grey-6 tw:text-[12px]!">
         <span class="q-pr-xs">#{{ item.number }} opened {{ date }} by <strong
           class="cursor-pointer"
-          @click="$emit('clickAuthor', item.author.login)"
+          @click="$emit('clickAuthor', [item.author.login, $event])"
         >{{ item.author.login }}</strong></span> •&nbsp;
 
         <span v-if="item.calculatedReviewStatus === 'approved'">
@@ -50,7 +50,7 @@
             v-for="reviewer in reviewers"
             :key="reviewer.name"
             class="cursor-pointer q-gutter-x-xs"
-            @click="$emit('clickAuthor', reviewer.name)"
+            @click="$emit('clickAuthor', [reviewer.name, $event])"
           >
             <q-icon v-bind="reviewerStateIcons[reviewer.state]" />
             <span>{{ reviewer.name }}</span>
@@ -91,8 +91,8 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  clickLabel: [value: string];
-  clickAuthor: [value: string];
+  clickLabel: [[value: string, event: MouseEvent]];
+  clickAuthor: [[value: string, event: MouseEvent]];
 }>();
 //#endregion
 
