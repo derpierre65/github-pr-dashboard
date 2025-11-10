@@ -8,7 +8,10 @@
 
     <div class="tw:flex-auto tw:min-w-0 tw:px-2">
       <div class="tw:space-x-1">
-        <span class="tw:text-[rgb(145,152,161)]">{{ item.org }}/{{ item.repo }}</span>
+        <span
+          class="tw:text-[rgb(145,152,161)] cursor-pointer"
+          @click="$emit('clickRepo', [item.nameWithOwner, $event])"
+        >{{ item.nameWithOwner }}</span>
         <a v-bind="linkProps" class="tw:text-base text-weight-bold">
           {{ item.title }}
         </a>
@@ -93,6 +96,7 @@ const props = defineProps<{
 defineEmits<{
   clickLabel: [[value: string, event: MouseEvent]];
   clickAuthor: [[value: string, event: MouseEvent]];
+  clickRepo: [[value: string, event: MouseEvent]];
 }>();
 //#endregion
 
@@ -194,8 +198,6 @@ function hexToRgbHsl(hex: string) {
     '--label-l': lPercent,
   };
 }
-
-
 //#endregion
 
 //#region Created

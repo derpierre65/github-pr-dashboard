@@ -99,7 +99,7 @@
               :key="repository.repository"
               class="tw:px-0!"
               clickable
-              @click="applyRepositoryFilter(repository.repository, $event)"
+              @click="addTempFilter('nameWithOwner', [repository.repository, $event])"
             >
               <q-item-section class="q-pr-xs" side>
                 <q-btn
@@ -189,6 +189,7 @@
           :items="filteredPullRequests"
           @click-author="addTempFilter('author', $event)"
           @click-label="addTempFilter('labels', $event)"
+          @click-repo="addTempFilter('nameWithOwner', $event)"
         />
       </div>
     </div>
@@ -441,7 +442,7 @@ function addTempFilter(type: string, [ newValue, event, ]: [string, MouseEvent])
       if (index >= 0) {
         existingFilter.__values.splice(index, 1);
       }
-      else if (event?.ctrlKey) {
+      else {
         existingFilter.__values.push(newValue);
       }
     }
@@ -468,18 +469,11 @@ function addTempFilter(type: string, [ newValue, event, ]: [string, MouseEvent])
     return;
   }
 
-  applyFilter(values.length ? filter : null, event ?? null);
+  applyFilter(filter, event ?? null, false);
 }
 
-function applyRepositoryFilter(repository: string, event: MouseEvent) {
-  addTempFilter('nameWithOwner', [
-    repository,
-    event,
-  ]);
-}
-
-function applyFilter(filter: DBFilter, event: Event | null = null) {
-  if (!event || !(event instanceof MouseEvent) || !event.ctrlKey || !filter) {
+function applyFilter(filter: DBFilter, event: Event | null = null, reset = true) {
+  if (reset && (!event || !(event instanceof MouseEvent) || !event.ctrlKey || !filter)) {
     currentFilters.value = [];
   }
 

@@ -6,6 +6,7 @@
       :item="pullRequest"
       @click-author="$emit('clickAuthor', $event)"
       @click-label="$emit('clickLabel', $event)"
+      @click-repo="$emit('clickRepo', $event)"
     />
   </div>
 </template>
@@ -20,5 +21,6 @@ defineProps<{
 defineEmits<{
   clickLabel: [[value: string, event: MouseEvent]];
   clickAuthor: [[value: string, event: MouseEvent]];
+  clickRepo: [[value: string, event: MouseEvent]];
 }>();
 </script>
