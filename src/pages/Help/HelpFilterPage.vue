@@ -106,6 +106,12 @@
         <code>latestOpinionatedReviews</code> (array of strings) - Array of usernames who reviewed this pull request.
       </li>
       <li>
+        <code>approvedBy</code> (array of strings) - Array of usernames who approved this pull request.
+      </li>
+      <li>
+        <code>changesRequestedBy</code> (array of strings) - Array of usernames who requested changes this pull request.
+      </li>
+      <li>
         <code>statusCheckRollup</code> ("SUCCESS" | "PENDING" | "FAILURE" | "UNKNOWN")
       </li>
       <li>

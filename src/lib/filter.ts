@@ -278,6 +278,17 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       if (fieldName === 'requestedReviewers') {
         return context.requestedReviewers.map((reviewer) => reviewer.login);
       }
+      if (fieldName === 'approvedBy') {
+        return context.latestOpinionatedReviews
+          .filter((reviewer) => reviewer.state === 'APPROVED')
+          .map((reviewer) => reviewer.author.login);
+      }
+      if (fieldName === 'changesRequestedBy') {
+        return context.latestOpinionatedReviews
+          .filter((reviewer) => reviewer.state === 'CHANGES_REQUESTED')
+          .map((reviewer) => reviewer.author.login);
+      }
+
       if ([
         'createdAt',
         'updatedAt',
