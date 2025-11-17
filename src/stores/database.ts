@@ -8,10 +8,12 @@ const useDatabaseStore = defineStore('db', () => {
   const settings = ref<{
     username: string;
     token: string;
-  }>(JSON.parse(window.localStorage.getItem('pr_dashboard_settings') || 'null') || {
+    groupPullRequestsRegEx: string;
+  }>(Object.assign({
     username: '',
     token: '',
-  });
+    groupPullRequestsRegEx: '',
+  }, JSON.parse(window.localStorage.getItem('pr_dashboard_settings') || '{}')));
   const authenticated = ref(false);
 
   function deleteEntry(storeName: string, id: string | number) {

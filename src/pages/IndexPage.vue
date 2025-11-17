@@ -137,6 +137,13 @@
               target="_blank"
               rel="noopener noreferrer"
             >GitHub Token</a> with the <strong>repo</strong> scope.</small>
+
+            <q-input
+              v-model="dbStore.settings.groupPullRequestsRegEx"
+              label="Pull request title group regular expression"
+              dense
+              @update:model-value="updateSettings('groupPullRequestsRegEx')"
+            />
           </div>
         </div>
       </div>
@@ -184,6 +191,19 @@
         <q-banner v-if="filteredPullRequests.length === 0" class="bg-positive">
           No pull requests found.
         </q-banner>
+        <div v-else-if="dbStore.settings.groupPullRequestsRegEx && groupedPullRequests" class="q-gutter-y-sm">
+          <template v-for="(group, name) in groupedPullRequests" :key="name">
+            <div class="text-weight-bold">
+              <span>{{ name }}</span>
+            </div>
+            <PullRequestTable
+              :items="group"
+              @click-author="addTempFilter('author', $event)"
+              @click-label="addTempFilter('labels', $event)"
+              @click-repo="addTempFilter('nameWithOwner', $event)"
+            />
+          </template>
+        </div>
         <PullRequestTable
           v-else
           :items="filteredPullRequests"
@@ -242,6 +262,21 @@ const filteredPullRequests = computed(() => {
   return [ ...new Set(filteredPullRequests), ].sort((pullRequestA, pullRequestB) => {
     return new Date(pullRequestB.createdAt).getTime() - new Date(pullRequestA.createdAt).getTime();
   });
+});
+
+const groupedPullRequests = computed(() => {
+  const grouped = Object.groupBy(filteredPullRequests.value, (pullRequest) => {
+    if (!pullRequest.title) {
+      return '';
+    }
+
+    const match = pullRequest.title.match(new RegExp(dbStore.settings.groupPullRequestsRegEx, 'i'));
+
+    return match?.[0] || '';
+  });
+  const useGrouping = Object.values(grouped).some((group) => group.length > 1);
+
+  return useGrouping ? grouped : null;
 });
 
 const availableRepositories = computed(() => {
