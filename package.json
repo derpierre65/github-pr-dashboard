@@ -12,6 +12,10 @@
     "build": "quasar build",
     "test:unit:ui": "vitest --ui",
     "test:unit:ci": "vitest run",
+    "test:playwright:ci": "npx playwright test",
+    "test:playwright:headed": "npx playwright test --headed",
+    "test:playwright:ui": "npx playwright test --ui",
+    "test:playwright:codegen": "npx playwright codegen",
     "postinstall": "quasar prepare"
   },
   "dependencies": {
@@ -24,6 +28,7 @@
   },
   "devDependencies": {
     "@derpierre65/eslint-config": "github:derpierre65/eslint-config",
+    "@playwright/test": "^1.56.1",
     "@quasar/app-vite": "^2.0.0-beta.12",
     "@quasar/quasar-app-extension-testing-unit-vitest": "^1.2.3",
     "@tailwindcss/postcss": "^4.1.13",

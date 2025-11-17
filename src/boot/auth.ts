@@ -2,8 +2,15 @@ import { boot } from 'quasar/wrappers';
 import useDatabaseStore from 'stores/database';
 import { Dark, Loading, Notify } from 'quasar';
 import GitHub from 'src/lib/github';
+import { vTest } from 'src/directives/test';
 
-export default boot(async({ redirect, router, }) => {
+export default boot(async({
+  app,
+  redirect,
+  router,
+}) => {
+  app.directive('test', vTest);
+
   Dark.set(true);
 
   const dbStore = useDatabaseStore();

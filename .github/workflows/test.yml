@@ -21,11 +21,15 @@ concurrency:
   group: gh-pr-tests-${{ github.head_ref || github.event.pull_request.head.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: 22
+
 jobs:
   vitest:
     name: 🧪 Vitest
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: 🛎 Checkout
         uses: actions/checkout@v5
@@ -33,7 +37,7 @@ jobs:
       - name: 🏗 Setup node
         uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
@@ -50,13 +54,91 @@ jobs:
       - name: 🧹 Clean CTRF Report
         run: sed -i 's|"test/|"|g' ./vitest-ctrf/report.json
 
+      - name: 📤 Upload artifacts - CTRF Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: ctrf-report-vitest
+          path: ./vitest-ctrf/report.json
+          retention-days: 1
+
+  playwright:
+    name: 🧪 Playwright
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: 🛎 Checkout
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: 👨🏻‍💻 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm i playwright-ctrf-json-reporter --no-save
+
+      - name: 🛠️ Playwright - Install Browsers
+        run: npx playwright install --with-deps
+
+      - name: 🧪 Playwright - Run tests
+        run: npm run test:playwright:ci
+
+      - name: 🧹 Clean CTRF Report
+        run: sed -i 's|"test/|"|g' ./test/playwright/results/ctrf/playwright.json
+
+      - name: 📤 Upload artifacts - CTRF Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: ctrf-report-playwright
+          path: test/playwright/results/ctrf/playwright.json
+          retention-days: 1
+
+      - name: 📤 Upload artifacts - Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: test/playwright/results/html/index.html
+
+      - name: 📤 Upload artifacts - Screenshots and Videos
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Screenshots
+          path: test/playwright/results/tests
+          if-no-files-found: ignore
+
+  report:
+    name: 📤 Publish Report
+    runs-on: ubuntu-latest
+    needs: [playwright, vitest]
+    if: >
+      always() && (
+        contains(fromJson('["success", "failure"]'), needs.playwright.result) ||
+        contains(fromJson('["success", "failure"]'), needs.vitest.result)
+      )
+    steps:
+      - name: 📥 Download CTRF Reports
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: ctrf-report-*
+          path: ./ctrf
+
       - name: 📋 Create CTRF Test Summary
         uses: ctrf-io/github-test-reporter@v1
         if: always() && !cancelled()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          report-path: ./vitest-ctrf/*.json
+          report-path: ./ctrf/**/*.json
           summary: true
           summary-report: true
           suite-folded-report: true
@@ -69,7 +151,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          report-path: ./vitest-ctrf/*.json
+          report-path: ./ctrf/**/*.json
           pull-request-report: true
           failed-folded-report: true
           skipped-report: true

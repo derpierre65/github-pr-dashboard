@@ -5,7 +5,9 @@
         <div class="text-center q-gutter-y-md">
           <q-icon name="fab fa-github" size="xl" />
 
-          <h6>Welcome to GitHub Pull Request Dashboard</h6>
+          <h6 v-test:setup-title>
+            Welcome to GitHub Pull Request Dashboard
+          </h6>
 
           <p>To get access to this page, you need to create a personal access token with the <code>repo</code> permissions.</p>
         </div>
