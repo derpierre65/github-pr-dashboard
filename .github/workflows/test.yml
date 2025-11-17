@@ -93,7 +93,6 @@ jobs:
             playwright-${{ runner.os }}-
 
       - name: 🛠️ Playwright - Install Browsers
-        if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
 
       - name: 🧪 Playwright - Run tests
