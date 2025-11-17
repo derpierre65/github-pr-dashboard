@@ -83,7 +83,17 @@ jobs:
           npm ci --prefer-offline --no-audit
           npm i playwright-ctrf-json-reporter --no-save
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: cache-playwright
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: 🛠️ Playwright - Install Browsers
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
 
       - name: 🧪 Playwright - Run tests
