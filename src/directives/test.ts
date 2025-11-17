@@ -1,5 +1,12 @@
-import { type Directive } from 'vue';
+import { Directive } from 'vue';
 import type { DirectiveBinding } from 'vue';
+
+declare module 'vue' {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  export interface ComponentCustomProperties {
+    vTest: Directive<HTMLElement, string>;
+  }
+}
 
 function updateElement(el: Element, binding: DirectiveBinding) {
   let finalElement = el;
