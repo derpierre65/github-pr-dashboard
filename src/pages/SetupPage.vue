@@ -48,12 +48,14 @@
         <div class="flex q-gutter-x-xs">
           <InputPassword
             v-model="token"
+            v-test:setup-token
             class="tw:flex-auto"
             label="GitHub Personal Access Token"
             outlined
             @keyup.enter="validateToken"
           />
           <q-btn
+            v-test:setup-login
             :disable="!token.trim().length"
             color="primary"
             label="Login"

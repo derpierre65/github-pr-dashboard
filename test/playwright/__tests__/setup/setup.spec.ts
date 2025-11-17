@@ -8,3 +8,10 @@ test('should redirect to setup page and setup title should be visible', async({ 
 
   await expect(page.getByTestId('setup-title')).toHaveText('Welcome to GitHub Pull Request Dashboard');
 });
+
+test('should fail with an invalid token', async({ page, }) => {
+  await page.goto('/setup');
+  await page.getByTestId('setup-token').fill('my-invalid-token');
+  await page.getByTestId('setup-login').click();
+  await expect(page.getByText('Your token is invalid')).toBeVisible();
+});
