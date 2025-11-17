@@ -67,7 +67,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run hot',
+    command: 'npm run dev',
     url: 'http://localhost:9000',
     reuseExistingServer: !process.env.CI,
   },
