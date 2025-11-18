@@ -99,7 +99,7 @@ jobs:
         run: npm run test:playwright:ci
 
       - name: 🧹 Clean CTRF Report
-        run: sed -i 's|"${{GITHUB_WORKSPACE}}/test/playwright/__tests__/|"playwright/|g' ./test/playwright/results/ctrf/playwright.json
+        run: sed -i "s|\"$GITHUB_WORKSPACE/test/playwright/__tests__/|\"playwright/|g" ./test/playwright/results/ctrf/playwright.json
 
       - name: 📤 Upload artifacts - CTRF Report
         uses: actions/upload-artifact@v4
