@@ -45,9 +45,14 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        storageState: 'test/playwright/.auth/user.json',
       },
     },
 
@@ -55,6 +60,7 @@ export default defineConfig({
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
+        storageState: 'test/playwright/.auth/user.json',
       },
     },
 
@@ -62,6 +68,7 @@ export default defineConfig({
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
+        storageState: 'test/playwright/.auth/user.json',
       },
     },
   ],

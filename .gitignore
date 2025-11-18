@@ -34,5 +34,5 @@ yarn-error.log*
 
 # Playwright
 /test/playwright/results/*
-/playwright/.cache/
-/playwright/.auth/
+/test/playwright/.auth/
+/test/playwright/.cache/
