@@ -84,6 +84,7 @@
             <span class="text-grey-6">Repositories</span>
             <q-space />
             <q-btn
+              v-test:repository-add
               color="primary"
               icon="fas fa-plus"
               size="xs"
@@ -93,10 +94,11 @@
               <q-tooltip>Add repository</q-tooltip>
             </q-btn>
           </div>
-          <q-list dense>
+          <q-list v-test:repository-list dense>
             <q-item
               v-for="repository in repositories"
               :key="repository.repository"
+              v-test="`repository-${repository.repository}`"
               class="tw:px-0!"
               clickable
               @click="addTempFilter('nameWithOwner', [repository.repository, $event])"
