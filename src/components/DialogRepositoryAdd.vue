@@ -1,15 +1,20 @@
 <template>
-  <q-dialog ref="dialogRef">
+  <q-dialog ref="dialogRef" v-test:dialog-repository-add>
     <q-card class="no-shadow tw:w-full">
       <q-card-section class="tw:flex tw:bg-stone-800 q-py-sm items-center">
         <span>Add Repository</span>
         <q-space />
-        <q-icon name="fas fa-times cursor-pointer" @click="onDialogCancel" />
+        <q-icon
+          v-test:dialog-repository-add-close
+          name="fas fa-times cursor-pointer"
+          @click="onDialogCancel"
+        />
       </q-card-section>
 
       <q-card-section>
         <q-input
           v-model="repositoryName"
+          v-test:repository-name
           :loading="loading"
           label="Repository Name"
           placeholder="derpierre65/github-pr-dashboard"
@@ -25,24 +30,27 @@
 
         <q-input
           v-model="suggestionQuery"
+          v-test:suggestion-search
           class="q-mb-xs"
           label="Search"
           dense
           outlined
         />
         <div class="tw:h-[25vh] overflow-auto">
-          <q-list v-if="filteredSuggestions" dense>
+          <q-list v-if="filteredSuggestions" v-test:suggestion-list dense>
             <q-item
               v-for="suggestion in filteredSuggestions"
               :key="suggestion.nameWithOwner"
+              v-test:suggestion
               class="tw:pl-0!"
             >
               <q-item-section class="q-pr-sm" side>
                 <q-btn
+                  v-test="`suggestion-${suggestion.nameWithOwner}-add`"
                   :disable="suggestion.isArchived"
-                  dense
                   color="primary"
                   icon="fas fa-plus"
+                  dense
                   @click="addSuggestionRepository(suggestion.nameWithOwner)"
                 >
                   <q-tooltip v-if="!suggestion.isArchived">
@@ -51,12 +59,16 @@
                 </q-btn>
               </q-item-section>
               <q-item-section :class="{'tw:opacity-50': suggestion.isArchived}">
-                {{ suggestion.nameWithOwner }}
+                <span>{{ suggestion.nameWithOwner }}</span>
               </q-item-section>
-              <q-item-section side>
-                <q-icon v-if="suggestion.isArchived" name="fas fa-box-archive" size="xs" />
-              </q-item-section>
-              <q-tooltip>This repository is archived.</q-tooltip>
+              <template v-if="suggestion.isArchived">
+                <q-item-section v-test="`suggestion-${suggestion.nameWithOwner}-archived-icon`" side>
+                  <q-icon name="fas fa-box-archive" size="xs" />
+                </q-item-section>
+                <q-tooltip>
+                  This repository is archived.
+                </q-tooltip>
+              </template>
             </q-item>
           </q-list>
         </div>
@@ -64,7 +76,13 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn label="Add" color="primary" :loading="loading" @click="submit" />
+        <q-btn
+          v-test:button-add
+          label="Add"
+          color="primary"
+          :loading="loading"
+          @click="submit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
