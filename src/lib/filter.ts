@@ -57,6 +57,16 @@ const filterFunctions = {
 
     return new Date(sortedDates[type === 'newest' ? sortedDates.length - 1 : 0]);
   },
+  count(context: GitHubPullRequest, value: unknown) {
+    if (typeof value === 'string') {
+      return value.length;
+    }
+    if (Array.isArray(value)) {
+      return value.length;
+    }
+
+    throw new Error('count() only accepts strings or arrays.');
+  },
 };
 
 function useFilterVariables() {
@@ -275,8 +285,18 @@ function getFilterNodeValue(node: jsep.CoreExpression, context: GitHubPullReques
       if (fieldName === 'latestOpinionatedReviews') {
         return context.latestOpinionatedReviews.map((reviewer) => reviewer.author.login);
       }
+      if (fieldName === 'latestOpinionatedReviewsWithoutBots') {
+        return context.latestOpinionatedReviews
+          .filter((reviewer) => reviewer.author.__typename === 'User')
+          .map((reviewer) => reviewer.author.login);
+      }
       if (fieldName === 'requestedReviewers') {
         return context.requestedReviewers.map((reviewer) => reviewer.login);
+      }
+      if (fieldName === 'requestedReviewersWithoutBots') {
+        return context.requestedReviewers
+          .filter((reviewer) => reviewer.__typename === 'User')
+          .map((reviewer) => reviewer.login);
       }
       if (fieldName === 'approvedBy') {
         return context.latestOpinionatedReviews

@@ -100,10 +100,16 @@
         <code>calculatedReviewStatus</code> ("approved" | "changes_requested" | "pending").
       </li>
       <li>
-        <code>requestedReviewers</code> (array of usernames)
+        <code>requestedReviewers</code> (array of strings) - List of usernames that should review this pull request.
       </li>
       <li>
-        <code>latestOpinionatedReviews</code> (array of strings) - Array of usernames who reviewed this pull request.
+        <code>requestedReviewersWithoutBots</code> (array of strings) - List of usernames that should review this pull request (excludes bots).
+      </li>
+      <li>
+        <code>latestOpinionatedReviews</code> (array of strings) - List of usernames who reviewed this pull request.
+      </li>
+      <li>
+        <code>latestOpinionatedReviewsWithoutBots</code> (array of strings) - List of usernames who reviewed this pull request (excludes bots).
       </li>
       <li>
         <code>approvedBy</code> (array of strings) - Array of usernames who approved this pull request.

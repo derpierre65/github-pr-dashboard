@@ -1,4 +1,5 @@
 type GitHubUser = {
+  __typename: 'User' | 'Bot';
   login: string;
   avatarUrl: string;
 };

@@ -76,17 +76,17 @@ export default class GitHub {
             endCursor
           }
           nodes {
-            id,
-            title,
-            isDraft,
-            url,
-            number,
-            lastEditedAt,
-            merged,
-            state,
-            totalCommentsCount,
-            createdAt,
-            updatedAt,
+            id
+            title
+            isDraft
+            url
+            number
+            lastEditedAt
+            merged
+            state
+            totalCommentsCount
+            createdAt
+            updatedAt
             baseRepository {
               nameWithOwner
             }
@@ -94,21 +94,22 @@ export default class GitHub {
               state
             }
             author {
-              login,
-              avatarUrl,
+              login
+              avatarUrl
             }
             labels(first: 100) {
               nodes {
-                id,
-                name,
-                color,
+                id
+                name
+                color
               }
             }
             latestOpinionatedReviews(first: 100) {
               nodes {
                 author {
-                  login,
-                  avatarUrl,
+                  __typename
+                  login
+                  avatarUrl
                 }
                 state
                 createdAt
@@ -119,7 +120,7 @@ export default class GitHub {
                 __typename
                 ... on ReviewRequestedEvent {
                     requestedReviewer {
-                      ... on User {__typename, login}
+                      ... on User { __typename, login }
                     }
                     createdAt
                 }
@@ -131,7 +132,7 @@ export default class GitHub {
                 }
                 ... on ReviewRequestRemovedEvent {
                     requestedReviewer {
-                      ... on User {__typename, login}
+                      ... on User { __typename, login }
                     }
                     createdAt
                 }
@@ -141,6 +142,7 @@ export default class GitHub {
               nodes {
                 requestedReviewer {
                   ... on User {
+                    __typename
                     login
                     avatarUrl
                     name
