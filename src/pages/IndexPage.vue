@@ -267,18 +267,29 @@ const filteredPullRequests = computed(() => {
 });
 
 const groupedPullRequests = computed(() => {
+  const emptyGroupName = 'Without Group';
   const grouped = Object.groupBy(filteredPullRequests.value, (pullRequest) => {
     if (!pullRequest.title) {
-      return '';
+      return emptyGroupName;
     }
 
     const match = pullRequest.title.match(new RegExp(dbStore.settings.groupPullRequestsRegEx, 'i'));
 
-    return match?.[0] || '';
+    return match?.[0] || emptyGroupName;
   });
   const useGrouping = Object.values(grouped).some((group) => group.length > 1);
+  if (!useGrouping) {
+    return null;
+  }
 
-  return useGrouping ? grouped : null;
+  if (!grouped[emptyGroupName]) {
+    return grouped;
+  }
+
+  return {
+    [emptyGroupName]: grouped[emptyGroupName],
+    ...grouped,
+  };
 });
 
 const availableRepositories = computed(() => {
