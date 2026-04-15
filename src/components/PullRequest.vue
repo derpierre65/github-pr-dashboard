@@ -73,11 +73,23 @@
         </template>
       </span>
 
-      <span class="text-right">
+      <span class="text-right tw:space-x-2">
         <a v-if="item.totalCommentsCount" v-bind="linkProps" class="tw:space-x-1 text-right">
           <span class="text-small text-bold">{{ item.totalCommentsCount }}</span>
           <q-icon name="fas fa-comment" />
         </a>
+
+        <q-icon
+          name="fas fa-note-sticky"
+          :color="item.note ? 'yellow-6' : 'grey-7'"
+          class="cursor-pointer"
+          @click="openNoteDialog"
+        >
+          <q-tooltip v-if="item.note" class="tw:max-w-[320px] tw:whitespace-pre-wrap tw:text-sm">
+            {{ item.note }}
+          </q-tooltip>
+          <q-tooltip v-else>Add note</q-tooltip>
+        </q-icon>
       </span>
     </div>
   </div>
@@ -85,8 +97,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { Dialog } from 'quasar';
 import dayjs from 'dayjs';
 import { getPullRequestReviewers } from 'src/lib/pull-request';
+import DialogPullRequestNote from 'components/DialogPullRequestNote.vue';
 
 //#region Composable & Prepare
 const props = defineProps<{
@@ -145,6 +159,15 @@ const date = computed(() => {
 //#endregion
 
 //#region Methods
+function openNoteDialog() {
+  Dialog.create({
+    component: DialogPullRequestNote,
+    componentProps: {
+      pullRequest: props.item,
+    },
+  });
+}
+
 function hexToRgbHsl(hex: string) {
   hex = hex.replace('#', '');
 

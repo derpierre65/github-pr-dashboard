@@ -75,6 +75,7 @@ const useDatabaseStore = defineStore('db', () => {
           const requestedReviewers = node.reviewRequests.nodes.map((request) => {
             return request.requestedReviewer;
           });
+          const existingNote = pullRequests.value.find((pullRequest) => pullRequest.id === node.id)?.note;
 
           delete node.reviewRequests;
 
@@ -90,6 +91,9 @@ const useDatabaseStore = defineStore('db', () => {
             calculatedReviewStatus: isApproved ? 'approved' : fallbackStatus,
             timelineItems: node.timelineItems.nodes,
             labels: node.labels.nodes,
+            ...existingNote ? {
+              note: existingNote,
+            } : {},
           };
         });
 

@@ -72,5 +72,6 @@ type GitHubPullRequest = {
   calculatedReviewStatus: 'approved' | 'changes_requested' | 'pending';
   updatedAt: string;
   fetchedAt: Date;
+  note?: string;
   _cacheRequestedReviewTimes?: Record<string, string>;
 };
