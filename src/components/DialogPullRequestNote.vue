@@ -3,11 +3,11 @@
     <q-card class="no-shadow tw:!max-w-[600px] full-width">
       <q-card-section class="tw:flex tw:bg-stone-800 q-py-sm items-center tw:gap-2">
         <div class="tw:min-w-0 tw:flex-auto">
-          <div class="text-grey-6 tw:text-xs">
-            {{ pullRequest.nameWithOwner }} #{{ pullRequest.number }}
-          </div>
           <div class="ellipsis">
             {{ pullRequest.title }}
+          </div>
+          <div class="text-grey-6 tw:text-xs">
+            {{ pullRequest.nameWithOwner }} #{{ pullRequest.number }}
           </div>
         </div>
         <q-icon name="fas fa-times cursor-pointer" @click="onDialogCancel" />
@@ -17,8 +17,7 @@
         <q-input
           v-model="noteText"
           type="textarea"
-          label="Private note"
-          hint="Stored locally in your browser only."
+          label="Note"
           rows="5"
           autofocus
           autogrow

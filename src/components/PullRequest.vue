@@ -74,6 +74,11 @@
       </span>
 
       <span class="text-right tw:space-x-2">
+        <a v-if="item.totalCommentsCount" v-bind="linkProps" class="tw:space-x-1 text-right">
+          <span class="text-small text-bold">{{ item.totalCommentsCount }}</span>
+          <q-icon name="fas fa-comment" />
+        </a>
+
         <q-icon
           name="fas fa-note-sticky"
           :color="item.note ? 'yellow-6' : 'grey-7'"
@@ -83,12 +88,8 @@
           <q-tooltip v-if="item.note" class="tw:max-w-[320px] tw:whitespace-pre-wrap tw:text-sm">
             {{ item.note }}
           </q-tooltip>
-          <q-tooltip v-else>Add private note</q-tooltip>
+          <q-tooltip v-else>Add note</q-tooltip>
         </q-icon>
-        <a v-if="item.totalCommentsCount" v-bind="linkProps" class="tw:space-x-1 text-right">
-          <span class="text-small text-bold">{{ item.totalCommentsCount }}</span>
-          <q-icon name="fas fa-comment" />
-        </a>
       </span>
     </div>
   </div>
