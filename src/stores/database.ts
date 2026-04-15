@@ -9,10 +9,12 @@ const useDatabaseStore = defineStore('db', () => {
     username: string;
     token: string;
     groupPullRequestsRegEx: string;
+    ungroupSinglePullRequests: boolean;
   }>(Object.assign({
     username: '',
     token: '',
     groupPullRequestsRegEx: '',
+    ungroupSinglePullRequests: false,
   }, JSON.parse(window.localStorage.getItem('pr_dashboard_settings') || '{}')));
   const authenticated = ref(false);
 

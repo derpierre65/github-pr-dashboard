@@ -146,6 +146,13 @@
               dense
               @update:model-value="updateSettings('groupPullRequestsRegEx')"
             />
+
+            <q-toggle
+              v-model="dbStore.settings.ungroupSinglePullRequests"
+              label="Ungroup single pull request groups"
+              dense
+              @update:model-value="updateSettings('ungroupSinglePullRequests')"
+            />
           </div>
         </div>
       </div>
@@ -280,6 +287,20 @@ const groupedPullRequests = computed(() => {
   const useGrouping = Object.values(grouped).some((group) => group.length > 1);
   if (!useGrouping) {
     return null;
+  }
+
+  if (dbStore.settings.ungroupSinglePullRequests) {
+    for (const groupName of Object.keys(grouped)) {
+      if (groupName === emptyGroupName || grouped[groupName].length !== 1) {
+        continue;
+      }
+
+      grouped[emptyGroupName] = [
+        ...grouped[emptyGroupName] ?? [],
+        ...grouped[groupName],
+      ];
+      delete grouped[groupName];
+    }
   }
 
   if (!grouped[emptyGroupName]) {
