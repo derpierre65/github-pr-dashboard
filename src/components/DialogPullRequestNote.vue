@@ -48,7 +48,7 @@
           label="Save"
           color="primary"
           no-caps
-          @click="submit"
+          @click="save"
         />
       </q-card-actions>
     </q-card>
@@ -105,7 +105,7 @@ function clonePullRequest(): GitHubPullRequest {
   return cloned;
 }
 
-async function persist(updatedPullRequest: GitHubPullRequest) {
+async function updatePullRequest(updatedPullRequest: GitHubPullRequest) {
   loading.value = true;
 
   try {
@@ -124,25 +124,24 @@ async function persist(updatedPullRequest: GitHubPullRequest) {
   }
 }
 
-function submit() {
+function save() {
   const trimmed = noteText.value.trim();
-  const updatedPullRequest = clonePullRequest();
-
   if (trimmed) {
+    const updatedPullRequest = clonePullRequest();
     updatedPullRequest.note = trimmed;
-  }
-  else {
-    delete updatedPullRequest.note;
+    updatePullRequest(updatedPullRequest);
+
+    return;
   }
 
-  return persist(updatedPullRequest);
+  deleteNote();
 }
 
 function deleteNote() {
   const updatedPullRequest = clonePullRequest();
   delete updatedPullRequest.note;
 
-  return persist(updatedPullRequest);
+  updatePullRequest(updatedPullRequest);
 }
 //#endregion
 
