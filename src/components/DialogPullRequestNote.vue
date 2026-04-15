@@ -79,6 +79,15 @@ const hasExistingNote = ref(Boolean(props.pullRequest.note));
 const loading = ref(false);
 //#endregion
 
+//#region Computed
+//#endregion
+
+//#region Watch
+//#endregion
+
+//#region Lifecycle Events
+//#endregion
+
 //#region Methods
 function updatePullRequestInStore(updatedPullRequest: GitHubPullRequest) {
   const index = dbStore.pullRequests.findIndex((pullRequest) => pullRequest.id === updatedPullRequest.id);
@@ -135,5 +144,8 @@ function deleteNote() {
 
   return persist(updatedPullRequest);
 }
+//#endregion
+
+//#region Created
 //#endregion
 </script>
